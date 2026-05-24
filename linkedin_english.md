@@ -1,6 +1,6 @@
 # 🧠 From Plato to Transformers: How Ancient Philosophy Predicted Modern Machine Learning
 
-While studying **neural networks** and cross-referencing them with philosophy, I arrived at an observation that genuinely stopped me:
+While studying **neural networks** as part of my MSc in AI at the University of Essex, I arrived at an observation that genuinely stopped me:
 
 **Ancient philosophers had already described the logic behind modern AI models.**
 
@@ -29,9 +29,17 @@ Each input *contributes* a weighted amount to the whole. This is the **addition*
 
 **Divisive Neuron (Analysis — Plato):**
 ```
-z = (w₁⁺x₁ + w₂⁺x₂) / (w₁⁻x₁ + w₂⁻x₂ + ε)
+num = w₁⁺·|x₁| + w₂⁺·|x₂|
+den = w₁⁻·|x₁| + w₂⁻·|x₂| + ε
+z   = num / den
 ```
 The neuron does not merely sum — it **divides**. It measures ratios, normalizes, separates signal from noise. This is Platonic *Diaeresis* in mathematical form.
+
+**Hybrid Neuron (Synthesis + Analysis — Leibniz):**
+```
+z = 0.5 · Additive(x) + 0.5 · Divisive(x)
+```
+Leibniz argued that *logos* encompasses both synthesis and analysis. The Hybrid neuron does exactly that — it builds a representation *and* divides it simultaneously.
 
 ---
 
@@ -71,7 +79,7 @@ The element-wise multiplication (⊙) acts as **selective division**: what the n
 |---|---|---|---|
 | **Synthesis** | Aristotle | Additive Neuron | Builds representation |
 | **Analysis** | Plato (Diaeresis) | Divisive Neuron | Normalizes, discriminates |
-| **Both** | Leibniz (Logos) | Attention / Hybrid | Synthesizes AND analyzes |
+| **Both** | Leibniz (Logos) | Hybrid / Attention | Synthesizes AND analyzes |
 | **Biology** | The Brain | Divisive Normalization | Visual cortex |
 
 ---
@@ -86,6 +94,8 @@ Plato would have recognized it immediately.
 
 ---
 
-*This analysis is accompanied by an interactive simulation tool — Additive vs Divisive vs Hybrid neurons with live training and decision boundary visualization — built as an empirical experiment to test this philosophical hypothesis.*
+*I built an interactive experiment to test this hypothesis live — three neuron types training simultaneously with real-time decision boundary visualisation, loss curves, and accuracy tracking. Bilingual 🇬🇷 🇬🇧. No install needed.*
 
-**#MachineLearning #DeepLearning #AI #NeuralNetworks #Philosophy #Transformers #Research #ArtificialIntelligence #Essex #MSc #Plato #Aristotle**
+🔗 **Try it here:** https://nikouliciousp.github.io/neurons_experiment/
+
+**#MachineLearning #DeepLearning #AI #NeuralNetworks #Philosophy #Transformers #Research #ArtificialIntelligence #Essex #MSc #Plato #Aristotle #Leibniz**
