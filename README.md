@@ -27,7 +27,8 @@ This led to a comparative empirical experiment between three neuron formulations
 An **interactive, standalone machine learning experiment** that bridges ancient philosophy and modern AI. Three neuron types — Additive, Divisive, and Hybrid — are trained simultaneously on the same dataset, with live visualisation of decision boundaries and loss curves.
 
 **Fully bilingual** 🇬🇷 Greek / 🇬🇧 English — toggle in the top right corner.  
-**Zero dependencies** — one HTML file, runs offline in any browser.
+**Zero dependencies** — one HTML file, runs offline in any browser.  
+**Mobile responsive** — works on any screen size.
 
 ---
 
@@ -36,8 +37,8 @@ An **interactive, standalone machine learning experiment** that bridges ancient 
 | Philosopher | Concept | ML Equivalent |
 |---|---|---|
 | **Aristotle** | Synthesis — the whole is greater than the sum of its parts | **Additive Neuron**: z = Σ wᵢxᵢ + b |
-| **Plato** | Diaeresis — knowledge through division of genus into species | **Divisive Neuron**: z = Σw⁺xᵢ / Σw⁻xᵢ |
-| **Leibniz** | Logos — reason encompasses both synthesis and analysis | **Hybrid Neuron**: α·Additive + (1−α)·Divisive |
+| **Plato** | Diaeresis — knowledge through division of genus into species | **Divisive Neuron**: z = Σw⁺\|xᵢ\| / Σw⁻\|xᵢ\| |
+| **Leibniz** | Logos — reason encompasses both synthesis and analysis | **Hybrid Neuron**: 0.5·Additive + 0.5·Divisive |
 | **Biology** | Carandini & Heeger (2012) — visual cortex uses divisive normalisation | **Div. Norm.**: r = σxⁿ / (σ⁵⁰ + Σxⁿ) |
 
 The key insight: the **Attention Mechanism** powering every modern Transformer (GPT, BERT, Claude) is mathematically a form of divisive normalisation:
@@ -54,12 +55,17 @@ Plato's Diaeresis — in computational form, 2,400 years later.
 
 - **Live Training** — 3 neuron types train simultaneously, step by step or continuous auto mode
 - **Decision Boundary Visualisation** — real-time colour-coded 2D canvas per neuron
-- **Loss Curve Comparison** — live chart overlaying all three networks
-- **3 Datasets** — XOR (non-linear), Circle (radial symmetry), Linear (simple)
-- **Mathematics Tab** — full formulas, numerical examples, backpropagation derivatives
+- **Loss Curve Comparison** — live chart overlaying all three networks with value labels
+- **Accuracy %** — live accuracy displayed alongside loss for each network
+- **Winner highlight** — winning network glows with its colour in real time
+- **Status bar** — explains what is happening at each epoch during training
+- **Step-by-step guide** — numbered instructions for first-time visitors
+- **4 Datasets** — XOR, Circle (radial), Spiral ✨ (hardest), Linear (simple)
+- **Mathematics Tab** — full formulas, numerical examples, backpropagation derivatives for all 3 neurons
 - **Philosophy Tab** — Aristotle, Plato, Leibniz, neuroscience, comparative table
 - **Bilingual** 🇬🇷 / 🇬🇧 — all text switches instantly without page reload
-- **Zero Dependencies** — pure HTML/CSS/JS, no npm, no build step, no internet required
+- **Mobile responsive** — single-column layout on small screens
+- **Zero dependencies** — pure HTML/CSS/JS, no npm, no build step, no internet required
 
 ---
 
@@ -70,7 +76,7 @@ Download `neurons_experiment.html` and open it in any browser. That is it.
 
 ### Option 2 — GitHub Pages (live link)
 ```
-https://nikouliciousp.github.io/neurons-experiment/neurons_experiment.html
+https://nikouliciousp.github.io/neurons_experiment/
 ```
 
 ### Option 3 — Clone and run locally
@@ -84,32 +90,47 @@ xdg-open neurons_experiment.html   # Linux
 
 ---
 
+## 🕹 How to Use
+
+1. **Choose a dataset** — XOR, Circle, Spiral, or Linear
+2. **Press AUTO** to start training, or use **+20 / +100** for manual steps
+3. Watch the **Decision Boundaries** update live — the colour background shows where each network predicts class 1 vs class 0
+4. Compare **Loss** (lower = better) and **Accuracy %** across the three networks
+5. The **winner glows** — its card lights up when it achieves the lowest loss
+6. Switch to **Mathematics** tab to understand the formulas, or **Philosophy** tab for the conceptual background
+
+---
+
 ## 📐 Neuron Mathematics
 
 ### Additive Neuron — Aristotelian Synthesis
 ```
 z = w₁x₁ + w₂x₂ + b
+ŷ = σ(z)
 
-Backprop:  ∂z/∂w₁ = x₁   (constant, stable gradient)
+Backprop:  ∂L/∂w₁ = (ŷ − y) · σ'(z) · x₁   (stable, analytical)
 ```
-Each input contributes a weighted amount to the whole. Knowledge built through accumulation.
 
 ### Divisive Neuron — Platonic Diaeresis
 ```
-z = (w₁⁺x₁ + w₂⁺x₂) / (w₁⁻x₁ + w₂⁻x₂ + ε)
+num = w₁⁺·|x₁| + w₂⁺·|x₂|
+den = w₁⁻·|x₁| + w₂⁻·|x₂| + ε
+z   = num / den
+ŷ   = σ(z)
 
-Backprop:  ∂z/∂wP₁ = x₁ / den
-           ∂z/∂wN₁ = −num · x₁ / den²
+Backprop:  ∂z/∂wP₁ = |x₁| / den
+           ∂z/∂wN₁ = −num · |x₁| / den²
 ```
-The neuron measures ratios, normalises, separates signal from noise. Non-linear without an explicit activation function.
 
 ### Hybrid Neuron — Leibnizian Logos
 ```
-z = α · Additive(x) + (1−α) · Divisive(x)
+z_add = w₁·x₁ + w₂·x₂ + b
+z_div = num / den
+z     = 0.5 · z_add + 0.5 · z_div
+ŷ     = σ(z)
 
-Backprop:  ∂z/∂α = Additive_out − Divisive_out
+Backprop: both branches update simultaneously with chain rule
 ```
-Synthesis and analysis combined. The balance parameter α is learned during training.
 
 ---
 
@@ -119,7 +140,10 @@ Synthesis and analysis combined. The balance parameter α is learned during trai
 |---|---|---|
 | **XOR** | Divisive / Hybrid | Non-linear structure benefits from ratio-based separation |
 | **Circle** | Divisive | Radial symmetry maps naturally to divisive normalisation |
+| **Spiral** | Divisive / Hybrid | Most complex — requires multiple non-linear cuts |
 | **Linear** | Additive | Simple boundary; divisive complexity is unnecessary |
+
+> Note: results vary slightly between runs due to random weight initialisation. Press ↺ Reset and re-run to see the general trend.
 
 ---
 
@@ -136,7 +160,7 @@ Synthesis and analysis combined. The balance parameter α is learned during trai
 ```
 neurons-experiment/
 │
-├── neurons_experiment.html   # Complete app — bilingual, standalone, zero dependencies
+├── neurons_experiment.html   # Complete app — bilingual, responsive, zero dependencies
 └── README.md                 # This file
 ```
 
