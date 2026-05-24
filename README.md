@@ -1,7 +1,7 @@
 # 🧠 Neurons Experiment
 ### From Plato to Transformers: Additive vs Divisive vs Hybrid Neurons
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-GitHub_Pages-00d4ff?style=for-the-badge)](github.com/nikouliciousp/neurons-experiment/)
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-GitHub_Pages-00d4ff?style=for-the-badge)](https://nikouliciousp.github.io/neurons_experiment/)
 [![Language](https://img.shields.io/badge/Language-GR_/_EN-7c3aed?style=for-the-badge)](#)
 [![MSc AI](https://img.shields.io/badge/MSc_AI-University_of_Essex-ff6b35?style=for-the-badge)](#)
 [![License](https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge)](LICENSE)
