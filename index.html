@@ -5,908 +5,771 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Additive vs Divisive Neurons | From Plato to Transformers</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap');
+:root{
+  --bg:#07090f;--panel:#111827;--border:#1e2d45;
+  --accent:#00d4ff;--accent2:#ff6b35;--accent3:#7c3aed;
+  --green:#10b981;--red:#ef4444;--yellow:#f59e0b;
+  --text:#e2e8f0;--muted:#475569;--sub:#94a3b8;--hi:#0a0e1a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;min-height:100vh;padding:14px;max-width:700px;margin:0 auto}
 
-  :root {
-    --bg: #07090f;
-    --panel: #111827;
-    --border: #1e2d45;
-    --accent: #00d4ff;
-    --accent2: #ff6b35;
-    --accent3: #7c3aed;
-    --green: #10b981;
-    --red: #ef4444;
-    --yellow: #f59e0b;
-    --text: #e2e8f0;
-    --muted: #475569;
-    --sub: #94a3b8;
-    --hi: #172033;
-  }
+/* LANG */
+.lang-bar{display:flex;justify-content:flex-end;gap:6px;margin-bottom:14px}
+.lang-btn{padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
+.lang-btn.active{border-color:var(--accent);background:#00d4ff18;color:var(--accent)}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* HEADER */
+.hdr{text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.hdr-sup{font-size:10px;letter-spacing:5px;color:var(--accent3);margin-bottom:5px}
+.hdr-title{font-size:20px;font-weight:900;line-height:1.2;margin-bottom:4px}
+.hdr-sub{color:var(--muted);font-size:11px}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'IBM Plex Mono', monospace;
-    min-height: 100vh;
-    padding: 16px;
-    max-width: 680px;
-    margin: 0 auto;
-  }
+/* GUIDE BOX */
+.guide{background:#7c3aed11;border:1px solid #7c3aed44;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:11px;line-height:1.8;color:var(--sub)}
+.guide strong{color:var(--text)}
+.guide-step{display:flex;gap:8px;align-items:flex-start;margin-bottom:6px}
+.guide-num{background:#7c3aed;color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px}
 
-  /* LANG TOGGLE */
-  .lang-bar {
-    display: flex;
-    justify-content: flex-end;
-    gap: 6px;
-    margin-bottom: 16px;
-  }
-  .lang-btn {
-    padding: 5px 14px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--muted);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-    letter-spacing: 1px;
-    transition: all 0.2s;
-  }
-  .lang-btn.active {
-    border-color: var(--accent);
-    background: #00d4ff18;
-    color: var(--accent);
-  }
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--panel);border-radius:10px;padding:4px;margin-bottom:12px}
+.tab-btn{flex:1;padding:8px 4px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
+.tab-btn.active{background:var(--border);color:var(--text)}
+.tab-content{display:none}.tab-content.active{display:block}
 
-  /* HEADER */
-  .header { text-align: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
-  .header-sup { font-size: 10px; letter-spacing: 5px; color: var(--accent3); margin-bottom: 6px; }
-  .header-title { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 4px; }
-  .header-title .blue { color: var(--accent); }
-  .header-title .orange { color: var(--accent2); }
-  .header-title .dim { color: var(--muted); }
-  .header-sub { color: var(--muted); font-size: 11px; }
+/* PANELS */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
+.plbl{font-size:9px;letter-spacing:3px;font-weight:700;margin-bottom:8px;text-transform:uppercase}
+.cbox{background:var(--hi);border-radius:7px;padding:8px 12px;margin-bottom:7px;font-size:11px;line-height:1.7}
+.cbox-title{font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:4px;text-transform:uppercase}
 
-  /* TABS */
-  .tabs { display: flex; gap: 4px; background: var(--panel); border-radius: 10px; padding: 4px; margin-bottom: 14px; }
-  .tab-btn {
-    flex: 1; padding: 8px 4px; border-radius: 7px; border: none;
-    background: transparent; color: var(--muted);
-    font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700;
-    cursor: pointer; letter-spacing: 0.5px; transition: all 0.2s;
-  }
-  .tab-btn.active { background: var(--border); color: var(--text); }
+/* CONTROLS */
+.ctrl-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.cbtn{padding:7px 13px;border-radius:8px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s}
+.cbtn:active{transform:scale(.97)}
+.dsbtn{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;font-size:10px;cursor:pointer;transition:all .2s}
+.dsbtn.active{border-color:var(--accent3);background:#7c3aed18;color:#a78bfa}
 
-  /* PANELS */
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 12px;
-  }
-  .panel-label {
-    font-size: 9px; letter-spacing: 3px; font-weight: 700;
-    margin-bottom: 10px; text-transform: uppercase;
-  }
-  .code-box {
-    background: #0a0e1a;
-    border-radius: 8px;
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    font-size: 11px;
-    line-height: 1.6;
-  }
+/* STATUS BAR */
+.status-bar{background:var(--hi);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:11px;color:var(--sub);min-height:32px;line-height:1.5;border-left:3px solid var(--accent3)}
 
-  /* CONTROLS */
-  .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
-  .ctrl-btn {
-    padding: 8px 14px; border-radius: 8px; font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s;
-  }
-  .dataset-btn {
-    padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border);
-    background: transparent; color: var(--muted);
-    font-family: 'IBM Plex Mono', monospace; font-size: 10px; cursor: pointer;
-    transition: all 0.2s;
-  }
-  .dataset-btn.active { border-color: var(--accent3); background: #7c3aed18; color: #a78bfa; }
+/* NET CARDS */
+.net-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+@media(max-width:500px){.net-strip{grid-template-columns:1fr}}
+.nc{background:var(--panel);border:2px solid var(--border);border-radius:10px;padding:10px;transition:border-color .3s,box-shadow .3s}
+.nc.winner{box-shadow:0 0 18px 2px var(--win-color,#10b981);border-color:var(--win-color,#10b981)!important}
+.nc-name{font-size:10px;font-weight:700;margin-bottom:2px;display:flex;align-items:center;gap:5px}
+.nc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.nc-phil{color:var(--muted);font-size:9px;font-style:italic;margin-bottom:5px;line-height:1.4}
+.nc-metrics{display:flex;gap:6px}
+.nc-metric{flex:1;text-align:center;background:var(--hi);border-radius:6px;padding:5px 4px}
+.nc-mlbl{font-size:8px;color:var(--muted);letter-spacing:1px}
+.nc-mval{font-size:15px;font-weight:900;margin-top:1px}
 
-  /* NET CARDS */
-  .net-card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: border-color 0.2s;
-  }
-  .net-card-inner { display: flex; gap: 12px; align-items: flex-start; }
-  .net-info { flex: 1; min-width: 0; }
-  .net-name { font-size: 11px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-  .net-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-  .net-phil { color: var(--muted); font-size: 10px; font-style: italic; margin-bottom: 6px; }
-  .net-formula { background: #0a0e1a; border-radius: 6px; padding: 5px 8px; font-size: 9px; margin-bottom: 6px; word-break: break-all; color: var(--text); }
-  .net-loss-row { display: flex; gap: 10px; align-items: center; }
-  .loss-bar-wrap { flex: 1; background: #0a0e1a; border-radius: 4px; height: 5px; overflow: hidden; }
-  .loss-bar { height: 100%; transition: width 0.4s; }
+/* BOUNDARY */
+.viz-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+@media(max-width:500px){.viz-grid{grid-template-columns:1fr}}
+.bcard{background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.blbl{font-size:9px;padding:4px 8px;text-align:center;letter-spacing:1px;font-weight:700}
+canvas{display:block;width:100%!important}
 
-  /* CANVAS */
-  canvas { border-radius: 8px; border: 1px solid var(--border); display: block; }
+/* LOSS CHART */
+.loss-wrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
+#loss-chart{width:100%!important;display:block;height:160px}
+.loss-legend{display:flex;gap:12px;margin-top:6px;flex-wrap:wrap}
+.ll-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--sub)}
 
-  /* LOSS CHART */
-  #loss-chart { display: block; }
+/* WINNER */
+.winner-box{border:1px solid #f59e0b44;border-radius:12px;padding:10px;margin-top:8px;background:var(--panel);animation:glow .8s ease-in-out}
+@keyframes glow{0%{border-color:#f59e0b88}50%{border-color:#f59e0b}100%{border-color:#f59e0b88}}
 
-  /* WINNER */
-  .winner-box {
-    background: var(--panel);
-    border: 1px solid #f59e0b44;
-    border-radius: 12px;
-    padding: 12px;
-    margin-top: 12px;
-  }
+/* MATH */
+.math-card{background:var(--panel);border-radius:12px;padding:12px;margin-bottom:10px}
+.mrow{display:flex;gap:7px;margin-bottom:7px}
+@media(max-width:500px){.mrow{flex-direction:column}}
+.mpro{flex:1;background:#10b98111;border-radius:6px;padding:6px 8px;font-size:10px}
+.mcon{flex:1;background:#ef444411;border-radius:6px;padding:6px 8px;font-size:10px}
+.formula{background:var(--hi);border-radius:8px;padding:10px 14px;margin:6px 0;border-left:3px solid var(--accent3);font-size:12px;line-height:2;overflow-x:auto}
+.formula .var{color:var(--accent);font-weight:700}
+.formula .var2{color:var(--accent2);font-weight:700}
+.formula .var3{color:var(--green);font-weight:700}
+.formula .op{color:var(--muted)}
+.formula .comment{font-size:9px;color:var(--muted);font-style:italic;display:block;margin-top:2px}
 
-  /* MATH */
-  .math-card { background: var(--panel); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
-  .math-row { display: flex; gap: 8px; margin-bottom: 8px; }
-  .math-pro { flex: 1; background: #10b98111; border-radius: 6px; padding: 7px 9px; font-size: 10px; }
-  .math-con { flex: 1; background: #ef444411; border-radius: 6px; padding: 7px 9px; font-size: 10px; }
+/* PHIL */
+.pcrd{background:var(--panel);border-radius:12px;padding:12px;margin-bottom:9px}
+.pico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.pquote{border-radius:6px;padding:6px 9px;margin-bottom:7px;font-size:11px;font-style:italic;color:var(--sub)}
 
-  /* PHILOSOPHY */
-  .phil-card { background: var(--panel); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
-  .phil-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-  .phil-quote { border-radius: 6px; padding: 7px 10px; margin-bottom: 8px; font-size: 11px; font-style: italic; color: var(--sub); }
-  .tag-row { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
-  .tag-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+table{width:100%;border-collapse:collapse;font-size:10px;margin-top:7px}
+th{padding:5px 7px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)}
+td{padding:5px 7px;border-bottom:1px solid var(--hi)}
 
-  /* TABLE */
-  table { width: 100%; border-collapse: collapse; font-size: 10px; margin-top: 8px; }
-  th { padding: 6px 8px; text-align: left; color: var(--muted); border-bottom: 1px solid var(--border); }
-  td { padding: 6px 8px; border-bottom: 1px solid #0a0e1a; }
-
-  /* HIDDEN */
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-  .lang-content { display: none; }
-  .lang-content.active { display: block; }
-
-  /* FOOTER */
-  .footer { text-align: center; padding: 16px 0 8px; color: var(--muted); font-size: 10px; line-height: 1.8; }
-  .footer a { color: var(--accent); text-decoration: none; }
-
-  /* SCROLLBAR */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.footer{text-align:center;padding:14px 0 6px;color:var(--muted);font-size:10px;line-height:1.8}
 </style>
 </head>
 <body>
 
-<!-- LANG TOGGLE -->
 <div class="lang-bar">
   <button class="lang-btn active" onclick="setLang('el')" id="btn-el">🇬🇷 ΕΛ</button>
   <button class="lang-btn" onclick="setLang('en')" id="btn-en">🇬🇧 EN</button>
 </div>
 
-<!-- HEADER -->
-<div class="header">
-  <div class="header-sup" id="h-sup">ΦΙΛΟΣΟΦΙΑ ΚΑΙ ΜΗΧΑΝΙΚΗ ΜΑΘΗΣΗ</div>
-  <div class="header-title">
-    <span class="blue" id="h-synth">Σύνθεση</span>
-    <span class="dim"> vs </span>
-    <span class="orange" id="h-anal">Ανάλυση</span>
+<div class="hdr">
+  <div class="hdr-sup" id="h-sup">ΦΙΛΟΣΟΦΙΑ ΚΑΙ ΜΗΧΑΝΙΚΗ ΜΑΘΗΣΗ</div>
+  <div class="hdr-title">
+    <span style="color:var(--accent)" id="h-synth">Σύνθεση</span>
+    <span style="color:var(--muted)"> vs </span>
+    <span style="color:var(--accent2)" id="h-anal">Ανάλυση</span>
   </div>
-  <div class="header-sub" id="h-sub">Additive · Divisive · Hybrid Neurons — Live Experiment</div>
+  <div class="hdr-sub" id="h-sub">Additive · Divisive · Hybrid Neurons — Live Experiment</div>
 </div>
 
-<!-- TABS -->
 <div class="tabs">
   <button class="tab-btn active" onclick="setTab('experiment')" id="tab-exp">🔬 <span id="t1">Πείραμα</span></button>
   <button class="tab-btn" onclick="setTab('math')" id="tab-math">📐 <span id="t2">Μαθηματικά</span></button>
   <button class="tab-btn" onclick="setTab('philosophy')" id="tab-phil">🏛 <span id="t3">Φιλοσοφία</span></button>
 </div>
 
-<!-- ═══════════ TAB: EXPERIMENT ═══════════ -->
+<!-- ═══ EXPERIMENT ═══ -->
 <div class="tab-content active" id="content-experiment">
 
-  <!-- Dataset -->
-  <div class="panel">
-    <div class="panel-label" id="ds-label" style="color:var(--muted)">ΕΠΙΛΟΓΗ DATASET</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="dataset-btn active" onclick="setDataset('xor')" id="ds-xor">XOR</button>
-      <button class="dataset-btn" onclick="setDataset('circle')" id="ds-circle">Circle</button>
-      <button class="dataset-btn" onclick="setDataset('linear')" id="ds-linear">Linear</button>
-    </div>
+  <!-- GUIDE -->
+  <div class="guide" id="guide-box">
+    <div class="guide-step"><div class="guide-num">1</div><div id="g1">Επίλεξε <strong>dataset</strong> — τι μορφή έχουν τα δεδομένα (XOR, κύκλος, σπείρα, γραμμή)</div></div>
+    <div class="guide-step"><div class="guide-num">2</div><div id="g2">Πάτα <strong>AUTO</strong> για να ξεκινήσει η εκπαίδευση — ή +20/+100 για βήματα</div></div>
+    <div class="guide-step"><div class="guide-num">3</div><div id="g3">Παρακολούθα live τα <strong>Decision Boundaries</strong> — πώς "βλέπει" ο χώρος κάθε δίκτυο</div></div>
+    <div class="guide-step"><div class="guide-num">4</div><div id="g4">Σύγκρινε <strong>Loss</strong> (λάθος) και <strong>Accuracy</strong> (επιτυχία %) — όσο χαμηλότερο Loss, τόσο καλύτερα</div></div>
   </div>
 
-  <!-- Controls -->
-  <div class="controls">
-    <button class="ctrl-btn" id="btn-step"
-      style="border:1px solid var(--accent);background:#00d4ff11;color:var(--accent)"
-      onclick="doStep()">▶ 1 EPOCH</button>
-    <button class="ctrl-btn" id="btn-50"
-      style="border:1px solid var(--accent2);background:#ff6b3511;color:var(--accent2)"
-      onclick="do50()">⚡ 50 EPOCHS</button>
-    <button class="ctrl-btn" id="btn-auto"
-      style="border:1px solid var(--green);background:#10b98111;color:var(--green)"
-      onclick="toggleAuto()">▶▶ AUTO</button>
+  <div class="panel">
+    <div class="plbl" id="ds-label" style="color:var(--muted)">DATASET</div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">
+      <button class="dsbtn active" onclick="setDS('xor')" id="ds-xor">XOR</button>
+      <button class="dsbtn" onclick="setDS('circle')" id="ds-circle">Circle</button>
+      <button class="dsbtn" onclick="setDS('spiral')" id="ds-spiral">Spiral ✨</button>
+      <button class="dsbtn" onclick="setDS('linear')" id="ds-linear">Linear</button>
+    </div>
+    <div style="margin-top:7px;font-size:10px;color:var(--muted)" id="ds-desc">XOR: τα σημεία που έχουν ίδιο πρόσημο ανήκουν σε μία κλάση — μη-γραμμικό πρόβλημα</div>
+  </div>
+
+  <div class="ctrl-row">
+    <button class="cbtn" style="border:1px solid var(--accent);background:#00d4ff11;color:var(--accent)" onclick="doStep()">▶ 1</button>
+    <button class="cbtn" style="border:1px solid var(--accent2);background:#ff6b3511;color:var(--accent2)" onclick="doN(20)">+20</button>
+    <button class="cbtn" style="border:1px solid var(--yellow);background:#f59e0b11;color:var(--yellow)" onclick="doN(100)">+100</button>
+    <button class="cbtn" id="btn-auto" style="border:1px solid var(--green);background:#10b98111;color:var(--green)" onclick="toggleAuto()">▶▶ AUTO</button>
+    <button class="cbtn" style="border:1px solid var(--muted);background:transparent;color:var(--muted)" onclick="resetAll()">↺</button>
     <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
-      <span style="color:var(--muted);font-size:11px" id="epoch-lbl">Epoch:</span>
+      <span style="color:var(--muted);font-size:10px" id="epoch-lbl">Epoch:</span>
       <span style="color:var(--text);font-size:16px;font-weight:900" id="epoch-val">0</span>
     </div>
   </div>
 
-  <!-- Network cards -->
-  <div id="net-cards"></div>
+  <!-- STATUS -->
+  <div class="status-bar" id="status-bar" id="sb">Πάτα AUTO για να ξεκινήσει η εκπαίδευση. Κάθε <strong>epoch</strong> = μία πλήρης διέλευση όλων των δεδομένων μέσα από το δίκτυο.</div>
 
-  <!-- Loss curves -->
-  <div class="panel" id="loss-panel" style="display:none">
-    <div class="panel-label" id="loss-lbl" style="color:var(--muted)">ΚΑΜΠΥΛΗ LOSS</div>
-    <canvas id="loss-chart" width="600" height="90"></canvas>
-    <div id="loss-legend" style="display:flex;gap:14px;margin-top:6px;flex-wrap:wrap"></div>
+  <!-- NET CARDS -->
+  <div class="net-strip" id="net-strip"></div>
+
+  <!-- BOUNDARIES -->
+  <div class="plbl" id="boundary-lbl" style="color:var(--muted);margin-bottom:6px">DECISION BOUNDARIES — LIVE</div>
+  <div class="viz-grid">
+    <div class="bcard" style="border-color:#00d4ff33"><div class="blbl" style="color:#00d4ff" id="bl-add">ADDITIVE</div><canvas id="cv-0" height="160"></canvas></div>
+    <div class="bcard" style="border-color:#ff6b3533"><div class="blbl" style="color:#ff6b35" id="bl-div">DIVISIVE</div><canvas id="cv-1" height="160"></canvas></div>
+    <div class="bcard" style="border-color:#10b98133"><div class="blbl" style="color:#10b981" id="bl-hyb">HYBRID</div><canvas id="cv-2" height="160"></canvas></div>
+  </div>
+  <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:10px" id="boundary-hint">🔵 κλάση 1 &nbsp;|&nbsp; 🟠 κλάση 0 &nbsp;|&nbsp; χρώμα background = πρόβλεψη δικτύου</div>
+
+  <!-- LOSS CHART -->
+  <div class="loss-wrap" id="loss-wrap" style="display:none">
+    <div class="plbl" id="loss-lbl" style="color:var(--muted)">ΚΑΜΠΥΛΗ LOSS — πόσο λάθος κάνει κάθε δίκτυο ανά epoch (χαμηλότερο = καλύτερα)</div>
+    <canvas id="loss-chart" role="img" aria-label="Loss curves">Loss curves</canvas>
+    <div class="loss-legend" id="loss-legend"></div>
   </div>
 
-  <!-- Winner -->
+  <!-- WINNER -->
   <div class="winner-box" id="winner-box" style="display:none">
-    <div class="panel-label" style="color:var(--yellow)">🏆 <span id="winner-lbl">ΑΠΟΤΕΛΕΣΜΑ</span></div>
-    <div id="winner-text" style="font-size:12px"></div>
+    <div class="plbl" style="color:var(--yellow)">🏆 <span id="winner-lbl">ΑΠΟΤΕΛΕΣΜΑ</span></div>
+    <div id="winner-text" style="font-size:12px;line-height:1.7"></div>
   </div>
+
 </div>
 
-<!-- ═══════════ TAB: MATH ═══════════ -->
+<!-- ═══ MATH ═══ -->
 <div class="tab-content" id="content-math">
 
-  <!-- Additive -->
+  <!-- ADDITIVE -->
   <div class="math-card" style="border:1px solid #00d4ff33">
-    <div style="color:var(--accent);font-size:12px;font-weight:900;margin-bottom:10px">Additive Neuron</div>
-    <div class="code-box">
-      <div style="font-size:9px;letter-spacing:3px;color:var(--muted);margin-bottom:4px" id="m-formula-lbl">ΤΥΠΟΣ</div>
-      <div style="color:var(--accent);font-size:13px;font-weight:700">z = w₁x₁ + w₂x₂ + b</div>
+    <div style="color:var(--accent);font-size:13px;font-weight:900;margin-bottom:8px" id="math-add-title">Additive Neuron — Αριστοτελική Σύνθεση</div>
+    <div style="color:var(--sub);font-size:11px;line-height:1.7;margin-bottom:8px" id="math-add-desc">Κάθε είσοδος πολλαπλασιάζεται με ένα βάρος και αθροίζεται. Απλό, γρήγορο, αλλά μπορεί να φτιάξει μόνο ευθείες γραμμές ως όρια απόφασης.</div>
+    <div class="formula">
+      <span class="var">z</span> <span class="op">=</span> <span class="var">w₁</span><span class="op">·</span><span class="var">x₁</span> <span class="op">+</span> <span class="var">w₂</span><span class="op">·</span><span class="var">x₂</span> <span class="op">+</span> <span class="var">b</span>
+      <span class="comment">// αθροίζει όλες τις εισόδους σταθμισμένα</span>
+      <br>
+      <span class="var">ŷ</span> <span class="op">= σ(</span><span class="var">z</span><span class="op">)</span>
+      <span class="comment">// σ = sigmoid → έξοδος μεταξύ 0 και 1</span>
     </div>
-    <div class="code-box">
-      <div style="font-size:9px;letter-spacing:3px;color:var(--muted);margin-bottom:4px" id="m-example-lbl">ΑΡΙΘΜΗΤΙΚΟ ΠΑΡΑΔΕΙΓΜΑ (x₁=2, x₂=3, w₁=0.5, w₂=-0.3, b=0.1)</div>
-      <div style="color:var(--text);font-size:11px">z = (0.5)(2) + (−0.3)(3) + 0.1</div>
-      <div style="color:var(--text);font-size:11px">z = 1.0 − 0.9 + 0.1 = <span style="color:var(--accent);font-weight:700">0.2</span></div>
+    <div class="cbox">
+      <div class="cbox-title" id="m-el">Αριθμητικό Παράδειγμα (x₁=2, x₂=3, w₁=0.5, w₂=-0.3, b=0.1)</div>
+      <div style="color:var(--text)">z = (0.5 × 2) + (−0.3 × 3) + 0.1</div>
+      <div style="color:var(--text)">z = 1.0 − 0.9 + 0.1 = <span style="color:var(--accent);font-weight:700">0.2</span></div>
+      <div style="color:var(--sub);margin-top:4px">ŷ = σ(0.2) = <span style="color:var(--accent)">0.55</span> → 55% πιθανότητα κλάση 1</div>
     </div>
-    <div class="code-box">
-      <div style="font-size:9px;letter-spacing:3px;color:var(--muted);margin-bottom:4px" id="m-deriv-lbl">ΠΑΡΑΓΩΓΟΣ (backprop)</div>
-      <div style="color:var(--yellow);font-size:11px">∂z/∂w₁ = x₁ = 2 &nbsp;(σταθερό, εύκολο)</div>
+    <div class="cbox">
+      <div class="cbox-title" id="m-dl">Παράγωγος — Backpropagation (πώς μαθαίνει)</div>
+      <div style="color:var(--yellow)">∂L/∂w₁ = (ŷ − y) · σ'(z) · x₁</div>
+      <div style="color:var(--sub);font-size:10px;margin-top:3px">Απλό, σταθερό gradient — εύκολο να εκπαιδευτεί</div>
     </div>
-    <div class="math-row">
-      <div class="math-pro">
-        <div style="color:var(--green);font-weight:700;margin-bottom:3px" id="m-pro">✅ ΠΛΕΟΝΕΚΤΗΜΑ</div>
-        <div style="color:#a7f3d0" id="m-add-pro">Σταθερό gradient, γρήγορο backprop, δεν εκρήγνυται</div>
-      </div>
-      <div class="math-con">
-        <div style="color:var(--red);font-weight:700;margin-bottom:3px" id="m-con">⚠ ΜΕΙΟΝΕΚΤΗΜΑ</div>
-        <div style="color:#fca5a5" id="m-add-con">Γραμμικός — δεν βλέπει αναλογίες ή σχέσεις κλίμακας</div>
-      </div>
+    <div class="mrow">
+      <div class="mpro"><div style="color:var(--green);font-weight:700;margin-bottom:3px" id="m-p1">✅ Πλεονέκτημα</div><div style="color:#a7f3d0" id="m-ap">Γρήγορο, σταθερό, δεν εκρήγνυται</div></div>
+      <div class="mcon"><div style="color:var(--red);font-weight:700;margin-bottom:3px" id="m-c1">⚠ Μειονέκτημα</div><div style="color:#fca5a5" id="m-ac">Μόνο ευθείες γραμμές — δεν βλέπει αναλογίες</div></div>
     </div>
   </div>
 
-  <!-- Divisive -->
+  <!-- DIVISIVE -->
   <div class="math-card" style="border:1px solid #ff6b3533">
-    <div style="color:var(--accent2);font-size:12px;font-weight:900;margin-bottom:10px">Divisive Neuron</div>
-    <div class="code-box">
-      <div style="font-size:9px;letter-spacing:3px;color:var(--muted);margin-bottom:4px" id="m-formula-lbl2">ΤΥΠΟΣ</div>
-      <div style="color:var(--accent2);font-size:12px;font-weight:700">z = (w₁⁺x₁ + w₂⁺x₂) / (w₁⁻x₁ + w₂⁻x₂ + ε)</div>
+    <div style="color:var(--accent2);font-size:13px;font-weight:900;margin-bottom:8px" id="math-div-title">Divisive Neuron — Πλατωνική Διαίρεση</div>
+    <div style="color:var(--sub);font-size:11px;line-height:1.7;margin-bottom:8px" id="math-div-desc">Αντί να αθροίζει, διαιρεί — μετράει αναλογίες. Ο αριθμητής ενισχύει, ο παρονομαστής κανονικοποιεί. Φυσικά μη-γραμμικός.</div>
+    <div class="formula" style="border-left-color:var(--accent2)">
+      <span class="var2">num</span> <span class="op">=</span> <span class="var2">w₁⁺</span><span class="op">·|</span><span class="var2">x₁</span><span class="op">| +</span> <span class="var2">w₂⁺</span><span class="op">·|</span><span class="var2">x₂</span><span class="op">|</span>
+      <span class="comment">// αριθμητής — τι ενισχύεται</span>
+      <br>
+      <span class="var2">den</span> <span class="op">=</span> <span class="var2">w₁⁻</span><span class="op">·|</span><span class="var2">x₁</span><span class="op">| +</span> <span class="var2">w₂⁻</span><span class="op">·|</span><span class="var2">x₂</span><span class="op">| + ε</span>
+      <span class="comment">// παρονομαστής — κανονικοποίηση (ε=0.5 για σταθερότητα)</span>
+      <br>
+      <span class="var2">z</span> <span class="op">=</span> <span class="var2">num</span> <span class="op">/</span> <span class="var2">den</span>
+      <span class="comment">// η διαίρεση δίνει φυσική μη-γραμμικότητα</span>
     </div>
-    <div class="code-box">
-      <div style="font-size:9px;letter-spacing:3px;color:var(--muted);margin-bottom:4px" id="m-example-lbl2">ΑΡΙΘΜΗΤΙΚΟ ΠΑΡΑΔΕΙΓΜΑ (x₁=2, x₂=3)</div>
-      <div style="color:var(--text);font-size:11px">num = 0.8·2 + 0.6·3 = 3.4</div>
-      <div style="color:var(--text);font-size:11px">den = 0.3·2 + 0.2·3 + 0.5 = 1.7</div>
-      <div style="color:var(--text);font-size:11px">z = 3.4 / 1.7 = <span style="color:var(--accent2);font-weight:700">2.0</span></div>
+    <div class="cbox">
+      <div class="cbox-title" id="m-el2">Αριθμητικό Παράδειγμα (x₁=2, x₂=3, wP=[0.8,0.6], wN=[0.3,0.2])</div>
+      <div style="color:var(--text)">num = 0.8×2 + 0.6×3 = 3.4</div>
+      <div style="color:var(--text)">den = 0.3×2 + 0.2×3 + 0.5 = 1.7</div>
+      <div style="color:var(--text)">z = 3.4 / 1.7 = <span style="color:var(--accent2);font-weight:700">2.0</span></div>
     </div>
-    <div class="code-box">
-      <div style="font-size:9px;letter-spacing:3px;color:var(--muted);margin-bottom:4px" id="m-deriv-lbl2">ΠΑΡΑΓΩΓΟΣ (backprop)</div>
-      <div style="color:var(--yellow);font-size:11px">∂z/∂wP₁ = x₁/den = 2/1.7 = 1.176</div>
-      <div style="color:var(--yellow);font-size:11px">∂z/∂wN₁ = −num·x₁/den² = −2.353</div>
+    <div class="cbox">
+      <div class="cbox-title" id="m-dl2">Παράγωγος — Analytical Backprop</div>
+      <div style="color:var(--yellow)">∂z/∂wP₁ = |x₁| / den = 1.176</div>
+      <div style="color:var(--yellow)">∂z/∂wN₁ = −num·|x₁| / den² = −2.353</div>
+      <div style="color:var(--sub);font-size:10px;margin-top:3px">Πιο πολύπλοκο αλλά analytically σωστό</div>
     </div>
-    <div class="math-row">
-      <div class="math-pro">
-        <div style="color:var(--green);font-weight:700;margin-bottom:3px" id="m-pro2">✅ ΠΛΕΟΝΕΚΤΗΜΑ</div>
-        <div style="color:#a7f3d0" id="m-div-pro">Κανονικοποιεί αυτόματα, βλέπει αναλογίες, μη-γραμμικός</div>
-      </div>
-      <div class="math-con">
-        <div style="color:var(--red);font-weight:700;margin-bottom:3px" id="m-con2">⚠ ΜΕΙΟΝΕΚΤΗΜΑ</div>
-        <div style="color:#fca5a5" id="m-div-con">Αστάθεια αν den→0, πολύπλοκο gradient, αργή εκπαίδευση</div>
-      </div>
+    <div class="mrow">
+      <div class="mpro"><div style="color:var(--green);font-weight:700;margin-bottom:3px" id="m-p2">✅ Πλεονέκτημα</div><div style="color:#a7f3d0" id="m-dp">Κανονικοποιεί, βλέπει αναλογίες, μη-γραμμικός</div></div>
+      <div class="mcon"><div style="color:var(--red);font-weight:700;margin-bottom:3px" id="m-c2">⚠ Μειονέκτημα</div><div style="color:#fca5a5" id="m-dc">Αστάθεια αν den→0, αργότερη εκπαίδευση</div></div>
     </div>
   </div>
 
-  <!-- Backprop comparison -->
+  <!-- HYBRID -->
+  <div class="math-card" style="border:1px solid #10b98133">
+    <div style="color:var(--green);font-size:13px;font-weight:900;margin-bottom:8px" id="math-hyb-title">Hybrid Neuron — Leibnizian Logos</div>
+    <div style="color:var(--sub);font-size:11px;line-height:1.7;margin-bottom:8px" id="math-hyb-desc">Συνδυάζει και τα δύο: 50% additive + 50% divisive. Χρησιμοποιεί σύνθεση ΚΑΙ ανάλυση — όπως ο Leibniz έλεγε ότι ο νους κάνει.</div>
+    <div class="formula" style="border-left-color:var(--green)">
+      <span class="var3">z_add</span> <span class="op">=</span> <span class="var3">w₁</span><span class="op">·</span><span class="var3">x₁</span> <span class="op">+</span> <span class="var3">w₂</span><span class="op">·</span><span class="var3">x₂</span> <span class="op">+</span> <span class="var3">b</span>
+      <span class="comment">// additive branch</span>
+      <br>
+      <span class="var3">z_div</span> <span class="op">=</span> <span class="var3">num</span> <span class="op">/</span> <span class="var3">den</span>
+      <span class="comment">// divisive branch</span>
+      <br>
+      <span class="var3">z</span> <span class="op">= 0.5 ·</span> <span class="var3">z_add</span> <span class="op">+ 0.5 ·</span> <span class="var3">z_div</span>
+      <span class="comment">// ισορροπία σύνθεσης και ανάλυσης</span>
+      <br>
+      <span class="var3">ŷ</span> <span class="op">= σ(</span><span class="var3">z</span><span class="op">)</span>
+    </div>
+    <div class="cbox">
+      <div class="cbox-title" id="m-el3">Παράδειγμα (x₁=2, x₂=3)</div>
+      <div style="color:var(--text)">z_add = 0.5×2 + (−0.3)×3 + 0.1 = 0.2</div>
+      <div style="color:var(--text)">z_div = 3.4 / 1.7 = 2.0</div>
+      <div style="color:var(--text)">z = 0.5×0.2 + 0.5×2.0 = <span style="color:var(--green);font-weight:700">1.1</span></div>
+    </div>
+    <div class="cbox">
+      <div class="cbox-title" id="m-dl3">Backprop — και οι δύο κλάδοι μαθαίνουν</div>
+      <div style="color:var(--yellow)">∂L/∂w₁ = 0.5 · (ŷ−y)·σ'·x₁</div>
+      <div style="color:var(--yellow)">∂L/∂wP₁ = 0.5 · (ŷ−y)·σ'·|x₁|/den</div>
+      <div style="color:var(--sub);font-size:10px;margin-top:3px">Τα βάρη και των δύο κλάδων ενημερώνονται ταυτόχρονα</div>
+    </div>
+    <div class="mrow">
+      <div class="mpro"><div style="color:var(--green);font-weight:700;margin-bottom:3px" id="m-p3">✅ Πλεονέκτημα</div><div style="color:#a7f3d0" id="m-hp">Ευέλικτο — παίρνει το καλύτερο και των δύο</div></div>
+      <div class="mcon"><div style="color:var(--red);font-weight:700;margin-bottom:3px" id="m-c3">⚠ Μειονέκτημα</div><div style="color:#fca5a5" id="m-hc">Διπλάσιες παράμετροι, πιο αργό</div></div>
+    </div>
+  </div>
+
+  <!-- BACKPROP COMPARISON -->
   <div class="math-card" style="border:1px solid #7c3aed33">
-    <div style="color:#a78bfa;font-size:12px;font-weight:900;margin-bottom:10px" id="m-bp-title">BACKPROPAGATION — Σύγκριση Gradient</div>
-    <div style="font-size:10px;color:var(--muted);margin-bottom:8px" id="m-bp-sub">Για x₁=2, x₂=3, num=3.4, den=1.7, ε=0.5:</div>
-    <div class="code-box" style="margin-bottom:5px">
-      <span style="color:var(--accent);font-size:11px;font-weight:700;display:inline-block;min-width:180px">Additive ∂z/∂w₁</span>
-      <span style="color:var(--text);font-size:11px">= x₁ = 2.000</span>
-      <span style="color:var(--muted);font-size:10px;margin-left:8px" id="m-bp1">Σταθερό, εύκολο</span>
+    <div style="color:#a78bfa;font-size:13px;font-weight:900;margin-bottom:8px" id="m-bpt">Τι είναι το Epoch & Loss</div>
+    <div class="cbox">
+      <div class="cbox-title">EPOCH</div>
+      <div style="color:var(--text)">1 epoch = το δίκτυο είδε <strong>όλα</strong> τα δεδομένα μία φορά και ενημέρωσε τα βάρη του.</div>
+      <div style="color:var(--sub);font-size:10px;margin-top:4px">Μετά από 100 epochs το δίκτυο έχει "ξαναδεί" τα δεδομένα 100 φορές.</div>
     </div>
-    <div class="code-box" style="margin-bottom:5px">
-      <span style="color:var(--accent2);font-size:11px;font-weight:700;display:inline-block;min-width:180px">Divisive ∂z/∂wP₁</span>
-      <span style="color:var(--text);font-size:11px">= x₁/den = 1.176</span>
-      <span style="color:var(--muted);font-size:10px;margin-left:8px" id="m-bp2">Εξαρτάται από den</span>
+    <div class="cbox">
+      <div class="cbox-title">LOSS (MSE)</div>
+      <div style="color:var(--text)">Loss = Σ(ŷᵢ − yᵢ)² / n &nbsp;— μέσο τετραγωνικό σφάλμα</div>
+      <div style="color:var(--sub);font-size:10px;margin-top:4px">Loss=0.25 σημαίνει μέση απόκλιση ~0.5 από τη σωστή απάντηση. Στόχος: Loss → 0.</div>
     </div>
-    <div class="code-box" style="margin-bottom:5px">
-      <span style="color:var(--accent2);font-size:11px;font-weight:700;display:inline-block;min-width:180px">Divisive ∂z/∂wN₁</span>
-      <span style="color:var(--text);font-size:11px">= −num·x₁/den² = −2.353</span>
-      <span style="color:var(--muted);font-size:10px;margin-left:8px" id="m-bp3">Πολύπλοκο, αρνητικό</span>
-    </div>
-    <div class="code-box">
-      <span style="color:var(--green);font-size:11px;font-weight:700;display:inline-block;min-width:180px">Hybrid ∂z/∂α</span>
-      <span style="color:var(--text);font-size:11px">= Add_out − Div_out</span>
-      <span style="color:var(--muted);font-size:10px;margin-left:8px" id="m-bp4">Μαθαίνει ισορροπία</span>
+    <div class="cbox">
+      <div class="cbox-title">ACCURACY</div>
+      <div style="color:var(--text)">Ποσοστό σωστών προβλέψεων: ŷ &gt; 0.5 → κλάση 1, αλλιώς κλάση 0.</div>
+      <div style="color:var(--sub);font-size:10px;margin-top:4px">Accuracy 90% = 9 στα 10 σωστά. Πιο κατανοητό από το Loss.</div>
     </div>
   </div>
+
 </div>
 
-<!-- ═══════════ TAB: PHILOSOPHY ═══════════ -->
+<!-- ═══ PHILOSOPHY ═══ -->
 <div class="tab-content" id="content-philosophy">
-
   <div class="panel" style="border-color:#7c3aed33">
-    <div class="panel-label" style="color:var(--accent3)" id="ph-main-lbl">Η ΚΕΝΤΡΙΚΗ ΙΔΕΑ</div>
-    <p style="color:var(--sub);font-size:12px;line-height:1.8" id="ph-main-text">
-      Οι αρχαίοι φιλόσοφοι θεωρούσαν ότι η σκέψη είναι <span style="color:var(--text)">συνεχής μάζα</span>
-      και ο <span style="color:#a78bfa">λόγος είναι το εργαλείο τομής</span> — η γλώσσα διαιρεί το συνεχές σε κατηγορίες.
-      Στο ML, ακριβώς αυτό κάνει ο νευρώνας: <span style="color:var(--accent)">αθροίζει</span> (συνθέτει)
-      ή <span style="color:var(--accent2)">διαιρεί</span> (αναλύει) τον χώρο εισόδου.
-    </p>
+    <div class="plbl" style="color:var(--accent3)" id="ph-ml">Η ΚΕΝΤΡΙΚΗ ΙΔΕΑ</div>
+    <p style="color:var(--sub);font-size:12px;line-height:1.8" id="ph-mt">Οι αρχαίοι φιλόσοφοι θεωρούσαν ότι η σκέψη είναι <span style="color:var(--text)">συνεχής μάζα</span> και ο <span style="color:#a78bfa">λόγος είναι το εργαλείο τομής</span> — η γλώσσα διαιρεί το συνεχές σε κατηγορίες. Στο ML, ακριβώς αυτό κάνει ο νευρώνας: <span style="color:var(--accent)">αθροίζει</span> (σύνθεση) ή <span style="color:var(--accent2)">διαιρεί</span> (ανάλυση) τον χώρο εισόδου.</p>
   </div>
-
-  <!-- Aristotle -->
-  <div class="phil-card" style="border:1px solid #00d4ff33">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <div class="phil-icon" style="background:#00d4ff18">∑</div>
-      <div style="color:var(--accent);font-size:12px;font-weight:900" id="ph1-title">Αριστοτέλης — Σύνθεση</div>
-    </div>
-    <div class="phil-quote" style="border-left:3px solid var(--accent)" id="ph1-quote">
-      "Το όλον είναι περισσότερο από το άθροισμα των μερών"
-    </div>
-    <div class="code-box">
-      <div style="font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:3px" id="ph-ml-lbl">ML ΑΝΤΙΣΤΟΙΧΙΑ</div>
-      <div style="color:var(--accent);font-size:11px">Additive Neuron: z = Σ wᵢxᵢ + b</div>
-    </div>
-    <div style="color:var(--sub);font-size:11px;line-height:1.7" id="ph1-text">
-      Κάθε είσοδος συνεισφέρει σταθμισμένα στο σύνολο. Η γνώση χτίζεται με συσσώρευση — αριστοτελική σύνθεση.
-    </div>
+  <div class="pcrd" style="border:1px solid #00d4ff33">
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><div class="pico" style="background:#00d4ff18">∑</div><div style="color:var(--accent);font-size:12px;font-weight:900" id="ph1t">Αριστοτέλης — Σύνθεση</div></div>
+    <div class="pquote" style="border-left:3px solid var(--accent)" id="ph1q">"Το όλον είναι περισσότερο από το άθροισμα των μερών"</div>
+    <div class="cbox"><div class="cbox-title" id="ph-mll">ML ΑΝΤΙΣΤΟΙΧΙΑ</div><div style="color:var(--accent)">Additive Neuron: z = Σ wᵢxᵢ + b</div></div>
+    <div style="color:var(--sub);font-size:11px;line-height:1.7" id="ph1x">Κάθε είσοδος συνεισφέρει σταθμισμένα. Η γνώση χτίζεται με συσσώρευση — αριστοτελική σύνθεση.</div>
   </div>
-
-  <!-- Plato -->
-  <div class="phil-card" style="border:1px solid #ff6b3533">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <div class="phil-icon" style="background:#ff6b3518">÷</div>
-      <div style="color:var(--accent2);font-size:12px;font-weight:900" id="ph2-title">Πλάτων — Διαίρεση (Diaeresis)</div>
-    </div>
-    <div class="phil-quote" style="border-left:3px solid var(--accent2)" id="ph2-quote">
-      "Η γνώση προκύπτει από τη διαίρεση του γένους σε είδη" — Σοφιστής
-    </div>
-    <div class="code-box">
-      <div style="font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:3px" id="ph-ml-lbl2">ML ΑΝΤΙΣΤΟΙΧΙΑ</div>
-      <div style="color:var(--accent2);font-size:11px">Divisive Neuron: z = Σw⁺xᵢ / Σw⁻xᵢ</div>
-    </div>
-    <div style="color:var(--sub);font-size:11px;line-height:1.7" id="ph2-text">
-      Ο νευρώνας δεν αθροίζει — τέμνει. Μετράει αναλογίες, κανονικοποιεί, διακρίνει σήμα από θόρυβο. Πλατωνική Διαίρεση σε μαθηματική μορφή.
-    </div>
+  <div class="pcrd" style="border:1px solid #ff6b3533">
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><div class="pico" style="background:#ff6b3518">÷</div><div style="color:var(--accent2);font-size:12px;font-weight:900" id="ph2t">Πλάτων — Διαίρεση (Diaeresis)</div></div>
+    <div class="pquote" style="border-left:3px solid var(--accent2)" id="ph2q">"Η γνώση προκύπτει από τη διαίρεση του γένους σε είδη" — Σοφιστής</div>
+    <div class="cbox"><div class="cbox-title" id="ph-ml2">ML ΑΝΤΙΣΤΟΙΧΙΑ</div><div style="color:var(--accent2)">Divisive Neuron: z = Σw⁺xᵢ / Σw⁻xᵢ</div></div>
+    <div style="color:var(--sub);font-size:11px;line-height:1.7" id="ph2x">Ο νευρώνας τέμνει. Μετράει αναλογίες, κανονικοποιεί, διακρίνει σήμα από θόρυβο. Πλατωνική Diaeresis σε μαθηματική μορφή.</div>
   </div>
-
-  <!-- Leibniz -->
-  <div class="phil-card" style="border:1px solid #10b98133">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <div class="phil-icon" style="background:#10b98118">⊕÷</div>
-      <div style="color:var(--green);font-size:12px;font-weight:900" id="ph3-title">Leibniz — Monad / Λόγος</div>
-    </div>
-    <div class="phil-quote" style="border-left:3px solid var(--green)" id="ph3-quote">
-      "Ο λόγος ενέχει και σύνθεση και ανάλυση"
-    </div>
-    <div class="code-box">
-      <div style="font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:3px">ML ΑΝΤΙΣΤΟΙΧΙΑ</div>
-      <div style="color:var(--green);font-size:11px">Hybrid: α·Additive + (1−α)·Divisive</div>
-    </div>
-    <div style="color:var(--sub);font-size:11px;line-height:1.7" id="ph3-text">
-      Ο νους χρησιμοποιεί και τα δύο: συνθέτει για να κατανοήσει, αναλύει για να διακρίνει. Ακριβώς ο Hybrid νευρώνας.
-    </div>
+  <div class="pcrd" style="border:1px solid #10b98133">
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><div class="pico" style="background:#10b98118">⊕÷</div><div style="color:var(--green);font-size:12px;font-weight:900" id="ph3t">Leibniz — Λόγος (Logos)</div></div>
+    <div class="pquote" style="border-left:3px solid var(--green)" id="ph3q">"Ο λόγος ενέχει και σύνθεση και ανάλυση"</div>
+    <div class="cbox"><div class="cbox-title">ML ΑΝΤΙΣΤΟΙΧΙΑ</div><div style="color:var(--green)">Hybrid: 0.5·Additive + 0.5·Divisive</div></div>
+    <div style="color:var(--sub);font-size:11px;line-height:1.7" id="ph3x">Ο νους χρησιμοποιεί και τα δύο. Ακριβώς ο Hybrid νευρώνας — σύνθεση για να χτίσει, διαίρεση για να διακρίνει.</div>
   </div>
-
-  <!-- Brain -->
-  <div class="phil-card" style="border:1px solid #7c3aed33">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <div class="phil-icon" style="background:#7c3aed18">🧠</div>
-      <div style="color:#a78bfa;font-size:12px;font-weight:900" id="ph4-title">Εγκέφαλος — Divisive Normalization</div>
-    </div>
-    <div class="phil-quote" style="border-left:3px solid #7c3aed" id="ph4-quote">
-      "Carandini & Heeger (2012): ο οπτικός φλοιός χρησιμοποιεί διαίρεση"
-    </div>
-    <div class="code-box">
-      <div style="font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:3px">ΒΙΟΛΟΓΙΚΟΣ ΤΥΠΟΣ</div>
-      <div style="color:#a78bfa;font-size:11px">r = (σ · xⁿ) / (σ⁵⁰ + Σxⁿ)</div>
-    </div>
-    <div style="color:var(--sub);font-size:11px;line-height:1.7" id="ph4-text">
-      Βιολογικά, ο εγκέφαλος κανονικοποιεί μέσω διαίρεσης — εξηγεί αντίληψη αντίθεσης και προσαρμογή στο φως.
-    </div>
+  <div class="pcrd" style="border:1px solid #7c3aed33">
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><div class="pico" style="background:#7c3aed18">🧠</div><div style="color:#a78bfa;font-size:12px;font-weight:900" id="ph4t">Εγκέφαλος — Divisive Normalization</div></div>
+    <div class="pquote" style="border-left:3px solid #7c3aed" id="ph4q">"Carandini & Heeger (2012): ο οπτικός φλοιός χρησιμοποιεί διαίρεση"</div>
+    <div class="cbox"><div class="cbox-title">ΒΙΟΛΟΓΙΚΟΣ ΤΥΠΟΣ</div><div style="color:#a78bfa">r = (σ · xⁿ) / (σ⁵⁰ + Σxⁿ)</div></div>
+    <div style="color:var(--sub);font-size:11px;line-height:1.7" id="ph4x">Βιολογικά, ο εγκέφαλος κανονικοποιεί μέσω διαίρεσης — εξηγεί αντίληψη αντίθεσης και προσαρμογή στο φως.</div>
   </div>
-
-  <!-- Table -->
-  <div class="panel" style="border-color:#1e2d45">
-    <div class="panel-label" style="color:var(--muted)" id="ph-table-lbl">ΣΥΝΟΨΗ</div>
-    <table>
-      <thead>
-        <tr>
-          <th id="th1">Τύπος</th>
-          <th id="th2">Φιλοσοφία</th>
-          <th id="th3">ML</th>
-          <th id="th4">Λειτουργία</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td style="color:var(--accent)" id="td1-1">Σύνθεση</td>
-          <td style="color:var(--sub)" id="td1-2">Αριστοτέλης</td>
-          <td style="color:var(--accent)">Additive</td>
-          <td style="color:var(--sub)" id="td1-4">Χτίζει αναπαράσταση</td>
-        </tr>
-        <tr>
-          <td style="color:var(--accent2)" id="td2-1">Ανάλυση</td>
-          <td style="color:var(--sub)" id="td2-2">Πλάτων</td>
-          <td style="color:var(--accent2)">Divisive</td>
-          <td style="color:var(--sub)" id="td2-4">Κανονικοποιεί, διακρίνει</td>
-        </tr>
-        <tr>
-          <td style="color:var(--green)" id="td3-1">Και τα δύο</td>
-          <td style="color:var(--sub)" id="td3-2">Leibniz</td>
-          <td style="color:var(--green)">Attention</td>
-          <td style="color:var(--sub)" id="td3-4">Συνθέτει & αναλύει</td>
-        </tr>
-        <tr>
-          <td style="color:#a78bfa" id="td4-1">Βιολογία</td>
-          <td style="color:var(--sub)" id="td4-2">Εγκέφαλος</td>
-          <td style="color:#a78bfa">Div. Norm.</td>
-          <td style="color:var(--sub)" id="td4-4">Οπτικός φλοιός</td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="panel">
+    <div class="plbl" style="color:var(--muted)" id="ph-tbl">ΣΥΝΟΨΗ</div>
+    <table><thead><tr><th id="th1">Τύπος</th><th id="th2">Φιλοσοφία</th><th id="th3">ML</th><th id="th4">Λειτουργία</th></tr></thead>
+    <tbody>
+      <tr><td style="color:var(--accent)" id="td11">Σύνθεση</td><td style="color:var(--sub)" id="td12">Αριστοτέλης</td><td style="color:var(--accent)">Additive</td><td style="color:var(--sub)" id="td14">Χτίζει αναπαράσταση</td></tr>
+      <tr><td style="color:var(--accent2)" id="td21">Ανάλυση</td><td style="color:var(--sub)" id="td22">Πλάτων</td><td style="color:var(--accent2)">Divisive</td><td style="color:var(--sub)" id="td24">Κανονικοποιεί, διακρίνει</td></tr>
+      <tr><td style="color:var(--green)" id="td31">Και τα δύο</td><td style="color:var(--sub)" id="td32">Leibniz</td><td style="color:var(--green)">Hybrid</td><td style="color:var(--sub)" id="td34">Συνθέτει & αναλύει</td></tr>
+      <tr><td style="color:#a78bfa" id="td41">Βιολογία</td><td style="color:var(--sub)" id="td42">Εγκέφαλος</td><td style="color:#a78bfa">Div. Norm.</td><td style="color:var(--sub)" id="td44">Οπτικός φλοιός</td></tr>
+    </tbody></table>
   </div>
-
-  <!-- Conclusion -->
   <div class="panel" style="border-color:#f59e0b44">
-    <div class="panel-label" style="color:var(--yellow)" id="ph-conc-lbl">ΣΥΜΠΕΡΑΣΜΑ</div>
-    <p style="color:var(--sub);font-size:12px;line-height:1.8;margin-bottom:10px" id="ph-conc-text">
-      Τα σύγχρονα νευρωνικά δίκτυα αντικατοπτρίζουν τη <span style="color:var(--text)">δομή της ανθρώπινης σκέψης</span>
-      όπως την περιέγραψαν οι αρχαίοι. Η ερώτηση <em>"μήπως η διαίρεση θα ήταν καλύτερη από την πρόσθεση"</em>
-      οδήγησε στους <span style="color:var(--accent);font-weight:700">Transformers</span> — την αρχιτεκτονική που στηρίζει κάθε σύγχρονο LLM.
-    </p>
-    <div style="background:#f59e0b11;border-radius:8px;padding:10px;font-size:11px;color:#fcd34d;line-height:1.7" id="ph-conc-tip">
-      💡 Η ιδέα του "divisive neuron" δεν είναι απλώς φιλοσοφική — είναι η βάση των
-      <strong>Attention Mechanisms</strong> που έφεραν επανάσταση στο ML.
-      Ο Πλάτων θα το είχε αναγνωρίσει.
-    </div>
+    <div class="plbl" style="color:var(--yellow)" id="ph-cl">ΣΥΜΠΕΡΑΣΜΑ</div>
+    <p style="color:var(--sub);font-size:12px;line-height:1.8;margin-bottom:9px" id="ph-ct">Τα νευρωνικά δίκτυα αντικατοπτρίζουν τη <span style="color:var(--text)">δομή της ανθρώπινης σκέψης</span>. Η ερώτηση <em>"μήπως η διαίρεση θα ήταν καλύτερη"</em> οδήγησε στους <span style="color:var(--accent);font-weight:700">Transformers</span> — την αρχιτεκτονική που στηρίζει κάθε σύγχρονο LLM.</p>
+    <div style="background:#f59e0b11;border-radius:7px;padding:9px;font-size:11px;color:#fcd34d;line-height:1.7" id="ph-tip">💡 Η ιδέα "divisive neuron" είναι η βάση των <strong>Attention Mechanisms</strong>. softmax(QKᵀ/√d)·V είναι ακριβώς divisive normalization. Ο Πλάτων θα το είχε αναγνωρίσει.</div>
   </div>
 </div>
 
-<!-- FOOTER -->
 <div class="footer">
-  <div id="footer-text">Δημιουργήθηκε ως πείραμα επαλήθευσης φιλοσοφικής υπόθεσης στο ML</div>
-  <div style="margin-top:4px">MSc AI · University of Essex · 2025</div>
+  <div id="footer-txt">Perikles Nikoules — MSc AI · University of Essex · 2025</div>
+  <div style="margin-top:3px;color:#334155">nikouliciousp.github.io/neurons_experiment/</div>
 </div>
 
 <script>
-// ============================================================
-// TRANSLATIONS
-// ============================================================
-const T = {
-  el: {
-    "h-sup": "ΦΙΛΟΣΟΦΙΑ ΚΑΙ ΜΗΧΑΝΙΚΗ ΜΑΘΗΣΗ",
-    "h-synth": "Σύνθεση", "h-anal": "Ανάλυση",
-    "h-sub": "Additive · Divisive · Hybrid Neurons — Live Experiment",
-    "t1": "Πείραμα", "t2": "Μαθηματικά", "t3": "Φιλοσοφία",
-    "ds-label": "ΕΠΙΛΟΓΗ DATASET",
-    "ds-xor": "XOR (μη-γραμμικό)", "ds-circle": "Circle (ακτίνα)", "ds-linear": "Linear (απλό)",
-    "btn-step": "▶ 1 EPOCH", "btn-50": "⚡ 50 EPOCHS", "btn-auto-start": "▶▶ AUTO", "btn-auto-stop": "⏹ STOP",
-    "epoch-lbl": "Epoch:",
-    "loss-lbl": "ΚΑΜΠΥΛΗ LOSS (ΣΥΓΚΡΙΣΗ)",
-    "winner-lbl": "ΑΠΟΤΕΛΕΣΜΑ",
-    "winner-fn": (name, loss, ds) => `<span style="font-weight:700">${name}</span> κερδίζει με loss <span style="color:#10b981;font-weight:700">${loss}</span><div style="color:#475569;font-size:10px;margin-top:4px">Dataset: <span style="color:#a78bfa">${ds.toUpperCase()}</span> — ${ds==='xor'?'Τα μη-γραμμικά προβλήματα ευνοούν divisive/hybrid':ds==='circle'?'Η ακτινική δομή ευνοεί divisive (αναλογίες)':'Το γραμμικό πρόβλημα ευνοεί additive'}</div>`,
-    "m-formula-lbl": "ΤΥΠΟΣ", "m-formula-lbl2": "ΤΥΠΟΣ",
-    "m-example-lbl": "ΑΡΙΘΜΗΤΙΚΟ ΠΑΡΑΔΕΙΓΜΑ (x₁=2, x₂=3, w₁=0.5, w₂=-0.3, b=0.1)",
-    "m-example-lbl2": "ΑΡΙΘΜΗΤΙΚΟ ΠΑΡΑΔΕΙΓΜΑ (x₁=2, x₂=3)",
-    "m-deriv-lbl": "ΠΑΡΑΓΩΓΟΣ (backprop)", "m-deriv-lbl2": "ΠΑΡΑΓΩΓΟΣ (backprop)",
-    "m-pro": "✅ ΠΛΕΟΝΕΚΤΗΜΑ", "m-pro2": "✅ ΠΛΕΟΝΕΚΤΗΜΑ",
-    "m-con": "⚠ ΜΕΙΟΝΕΚΤΗΜΑ", "m-con2": "⚠ ΜΕΙΟΝΕΚΤΗΜΑ",
-    "m-add-pro": "Σταθερό gradient, γρήγορο backprop, δεν εκρήγνυται",
-    "m-add-con": "Γραμμικός — δεν βλέπει αναλογίες ή σχέσεις κλίμακας",
-    "m-div-pro": "Κανονικοποιεί αυτόματα, βλέπει αναλογίες, μη-γραμμικός",
-    "m-div-con": "Αστάθεια αν den→0, πολύπλοκο gradient, αργή εκπαίδευση",
-    "m-bp-title": "BACKPROPAGATION — Σύγκριση Gradient",
-    "m-bp-sub": "Για x₁=2, x₂=3, num=3.4, den=1.7, ε=0.5:",
-    "m-bp1": "Σταθερό, εύκολο", "m-bp2": "Εξαρτάται από den",
-    "m-bp3": "Πολύπλοκο, αρνητικό", "m-bp4": "Μαθαίνει ισορροπία",
-    "ph-main-lbl": "Η ΚΕΝΤΡΙΚΗ ΙΔΕΑ",
-    "ph-main-text": `Οι αρχαίοι φιλόσοφοι θεωρούσαν ότι η σκέψη είναι <span style="color:var(--text)">συνεχής μάζα</span> και ο <span style="color:#a78bfa">λόγος είναι το εργαλείο τομής</span> — η γλώσσα διαιρεί το συνεχές σε κατηγορίες. Στο ML, ακριβώς αυτό κάνει ο νευρώνας: <span style="color:var(--accent)">αθροίζει</span> (συνθέτει) ή <span style="color:var(--accent2)">διαιρεί</span> (αναλύει) τον χώρο εισόδου.`,
-    "ph1-title": "Αριστοτέλης — Σύνθεση",
-    "ph1-quote": '"Το όλον είναι περισσότερο από το άθροισμα των μερών"',
-    "ph-ml-lbl": "ML ΑΝΤΙΣΤΟΙΧΙΑ", "ph-ml-lbl2": "ML ΑΝΤΙΣΤΟΙΧΙΑ",
-    "ph1-text": "Κάθε είσοδος συνεισφέρει σταθμισμένα στο σύνολο. Η γνώση χτίζεται με συσσώρευση — αριστοτελική σύνθεση.",
-    "ph2-title": "Πλάτων — Διαίρεση (Diaeresis)",
-    "ph2-quote": '"Η γνώση προκύπτει από τη διαίρεση του γένους σε είδη" — Σοφιστής',
-    "ph2-text": "Ο νευρώνας δεν αθροίζει — τέμνει. Μετράει αναλογίες, κανονικοποιεί, διακρίνει σήμα από θόρυβο.",
-    "ph3-title": "Leibniz — Monad / Λόγος",
-    "ph3-quote": '"Ο λόγος ενέχει και σύνθεση και ανάλυση"',
-    "ph3-text": "Ο νους χρησιμοποιεί και τα δύο: συνθέτει για να κατανοήσει, αναλύει για να διακρίνει.",
-    "ph4-title": "Εγκέφαλος — Divisive Normalization",
-    "ph4-quote": '"Carandini & Heeger (2012): ο οπτικός φλοιός χρησιμοποιεί διαίρεση"',
-    "ph4-text": "Βιολογικά, ο εγκέφαλος κανονικοποιεί μέσω διαίρεσης — εξηγεί αντίληψη αντίθεσης και προσαρμογή στο φως.",
-    "ph-table-lbl": "ΣΥΝΟΨΗ",
+// ── TRANSLATIONS ──
+const T={
+  el:{
+    "h-sup":"ΦΙΛΟΣΟΦΙΑ ΚΑΙ ΜΗΧΑΝΙΚΗ ΜΑΘΗΣΗ","h-synth":"Σύνθεση","h-anal":"Ανάλυση",
+    "h-sub":"Additive · Divisive · Hybrid Neurons — Live Experiment",
+    "t1":"Πείραμα","t2":"Μαθηματικά","t3":"Φιλοσοφία",
+    "g1":`Επίλεξε <strong>dataset</strong> — τι μορφή έχουν τα δεδομένα (XOR, κύκλος, σπείρα, γραμμή)`,
+    "g2":`Πάτα <strong>AUTO</strong> για να ξεκινήσει η εκπαίδευση — ή +20/+100 για βήματα`,
+    "g3":`Παρακολούθα live τα <strong>Decision Boundaries</strong> — πώς "βλέπει" ο χώρος κάθε δίκτυο`,
+    "g4":`Σύγκρινε <strong>Loss</strong> (λάθος) και <strong>Accuracy %</strong> — χαμηλότερο Loss = καλύτερο δίκτυο`,
+    "ds-label":"DATASET","ds-xor":"XOR","ds-circle":"Circle","ds-spiral":"Spiral ✨","ds-linear":"Linear",
+    "epoch-lbl":"Epoch:","loss-lbl":"ΚΑΜΠΥΛΗ LOSS — χαμηλότερο = καλύτερα",
+    "winner-lbl":"ΑΠΟΤΕΛΕΣΜΑ","boundary-lbl":"DECISION BOUNDARIES — LIVE",
+    "boundary-hint":"🔵 κλάση 1 | 🟠 κλάση 0 | χρώμα background = πρόβλεψη δικτύου",
+    "bl-add":"ADDITIVE","bl-div":"DIVISIVE","bl-hyb":"HYBRID",
+    "btn-auto-start":"▶▶ AUTO","btn-auto-stop":"⏹ STOP",
+    "LOSS":"LOSS","ACC":"ACC%",
+    "np":["Σύνθεση — πρόσθεση πληροφορίας","Ανάλυση — τομή/διαίρεση","Σύνθεση + Ανάλυση"],
+    "dsDesc":{
+      xor:"XOR: τα σημεία ίδιου πρόσημου (++, −−) → κλάση 1. Μη-γραμμικό — δεν χωρίζεται με ευθεία.",
+      circle:"Circle: τα σημεία εντός κύκλου → κλάση 1. Απαιτεί κυκλικό όριο απόφασης.",
+      spiral:"Spiral: δύο διαπλεκόμενες σπείρες. Το πιο δύσκολο — χρειάζεται πολλαπλές μη-γραμμικές τομές.",
+      linear:"Linear: τα σημεία πάνω-δεξιά → κλάση 1. Γραμμικά διαχωρίσιμο — αρκεί ευθεία."
+    },
+    "statusRunning":(e,ln,dn,hn)=>`<strong>Epoch ${e}</strong> — Additive: ${ln} | Divisive: ${dn} | Hybrid: ${hn} &nbsp;⟵ χαμηλότερο Loss = καλύτερα`,
+    "statusIdle":"Πάτα AUTO για εκπαίδευση. Κάθε <strong>epoch</strong> = μία πλήρης διέλευση όλων των δεδομένων.",
+    "wfn":(n,nc,l,a,ds)=>`<span style="color:${nc};font-weight:900;font-size:14px">${n}</span> κερδίζει! &nbsp; Loss: <span style="color:#10b981;font-weight:700">${l}</span> &nbsp; Accuracy: <span style="color:#00d4ff;font-weight:700">${a}%</span><div style="color:#475569;font-size:10px;margin-top:4px;line-height:1.6">${{xor:"XOR: μη-γραμμικό πρόβλημα — ευνοεί divisive/hybrid",circle:"Circle: ακτινική δομή — ευνοεί divisive (αναλογίες)",spiral:"Spiral: σύνθετες μη-γραμμικές τομές — ευνοεί divisive/hybrid",linear:"Linear: γραμμικά διαχωρίσιμο — ευνοεί additive"}[ds]}</div>`,
+    "math-add-title":"Additive Neuron — Αριστοτελική Σύνθεση",
+    "math-add-desc":"Κάθε είσοδος πολλαπλασιάζεται με ένα βάρος και αθροίζεται. Απλό, γρήγορο, αλλά φτιάχνει μόνο ευθείες γραμμές ως όρια απόφασης.",
+    "math-div-title":"Divisive Neuron — Πλατωνική Διαίρεση",
+    "math-div-desc":"Αντί να αθροίζει, διαιρεί — μετράει αναλογίες. Ο αριθμητής ενισχύει, ο παρονομαστής κανονικοποιεί. Φυσικά μη-γραμμικός.",
+    "math-hyb-title":"Hybrid Neuron — Leibnizian Logos",
+    "math-hyb-desc":"Συνδυάζει και τα δύο: 50% additive + 50% divisive. Χρησιμοποιεί σύνθεση ΚΑΙ ανάλυση.",
+    "m-el":"Αριθμητικό Παράδειγμα","m-el2":"Αριθμητικό Παράδειγμα","m-el3":"Αριθμητικό Παράδειγμα",
+    "m-dl":"Παράγωγος — Backpropagation","m-dl2":"Παράγωγος — Analytical Backprop","m-dl3":"Backprop — και οι δύο κλάδοι",
+    "m-p1":"✅ Πλεονέκτημα","m-c1":"⚠ Μειονέκτημα","m-p2":"✅ Πλεονέκτημα","m-c2":"⚠ Μειονέκτημα","m-p3":"✅ Πλεονέκτημα","m-c3":"⚠ Μειονέκτημα",
+    "m-ap":"Γρήγορο, σταθερό, δεν εκρήγνυται","m-ac":"Μόνο ευθείες γραμμές — δεν βλέπει αναλογίες",
+    "m-dp":"Κανονικοποιεί, βλέπει αναλογίες, μη-γραμμικός","m-dc":"Αστάθεια αν den→0, αργότερη εκπαίδευση",
+    "m-hp":"Ευέλικτο — παίρνει το καλύτερο και των δύο","m-hc":"Διπλάσιες παράμετροι, πιο αργό",
+    "m-bpt":"Τι είναι το Epoch & Loss",
+    "ph-ml":"Η ΚΕΝΤΡΙΚΗ ΙΔΕΑ","ph-tbl":"ΣΥΝΟΨΗ","ph-cl":"ΣΥΜΠΕΡΑΣΜΑ",
+    "ph-mt":`Οι αρχαίοι φιλόσοφοι θεωρούσαν ότι η σκέψη είναι <span style="color:var(--text)">συνεχής μάζα</span> και ο <span style="color:#a78bfa">λόγος είναι το εργαλείο τομής</span>. Στο ML: <span style="color:var(--accent)">αθροίζει</span> ή <span style="color:var(--accent2)">διαιρεί</span>.`,
+    "ph1t":"Αριστοτέλης — Σύνθεση","ph1q":'"Το όλον είναι περισσότερο από το άθροισμα των μερών"',
+    "ph-mll":"ML ΑΝΤΙΣΤΟΙΧΙΑ","ph-ml2":"ML ΑΝΤΙΣΤΟΙΧΙΑ",
+    "ph1x":"Κάθε είσοδος συνεισφέρει σταθμισμένα. Η γνώση χτίζεται με συσσώρευση.",
+    "ph2t":"Πλάτων — Διαίρεση (Diaeresis)","ph2q":'"Η γνώση προκύπτει από τη διαίρεση του γένους σε είδη" — Σοφιστής',
+    "ph2x":"Ο νευρώνας τέμνει. Μετράει αναλογίες, κανονικοποιεί, διακρίνει σήμα από θόρυβο.",
+    "ph3t":"Leibniz — Λόγος","ph3q":'"Ο λόγος ενέχει και σύνθεση και ανάλυση"',
+    "ph3x":"Ο νους χρησιμοποιεί και τα δύο. Ακριβώς ο Hybrid νευρώνας.",
+    "ph4t":"Εγκέφαλος — Divisive Normalization","ph4q":'"Carandini & Heeger (2012): ο οπτικός φλοιός χρησιμοποιεί διαίρεση"',
+    "ph4x":"Βιολογικά, ο εγκέφαλος κανονικοποιεί μέσω διαίρεσης — εξηγεί αντίληψη αντίθεσης.",
     "th1":"Τύπος","th2":"Φιλοσοφία","th3":"ML","th4":"Λειτουργία",
-    "td1-1":"Σύνθεση","td1-2":"Αριστοτέλης","td1-4":"Χτίζει αναπαράσταση",
-    "td2-1":"Ανάλυση","td2-2":"Πλάτων","td2-4":"Κανονικοποιεί, διακρίνει",
-    "td3-1":"Και τα δύο","td3-2":"Leibniz","td3-4":"Συνθέτει & αναλύει",
-    "td4-1":"Βιολογία","td4-2":"Εγκέφαλος","td4-4":"Οπτικός φλοιός",
-    "ph-conc-lbl": "ΣΥΜΠΕΡΑΣΜΑ",
-    "ph-conc-text": `Τα σύγχρονα νευρωνικά δίκτυα αντικατοπτρίζουν τη <span style="color:var(--text)">δομή της ανθρώπινης σκέψης</span> όπως την περιέγραψαν οι αρχαίοι. Η ερώτηση <em>"μήπως η διαίρεση θα ήταν καλύτερη από την πρόσθεση"</em> οδήγησε στους <span style="color:var(--accent);font-weight:700">Transformers</span> — την αρχιτεκτονική που στηρίζει κάθε σύγχρονο LLM.`,
-    "ph-conc-tip": `💡 Η ιδέα του "divisive neuron" δεν είναι απλώς φιλοσοφική — είναι η βάση των <strong>Attention Mechanisms</strong> που έφεραν επανάσταση στο ML. Ο Πλάτων θα το είχε αναγνωρίσει.`,
-    "footer-text": "Δημιουργήθηκε ως πείραμα επαλήθευσης φιλοσοφικής υπόθεσης στο ML",
-    "net-phil": ["Σύνθεση — πρόσθεση πληροφορίας", "Ανάλυση — τομή/διαίρεση πληροφορίας", "Σύνθεση + Ανάλυση — και τα δύο"],
+    "td11":"Σύνθεση","td12":"Αριστοτέλης","td14":"Χτίζει αναπαράσταση",
+    "td21":"Ανάλυση","td22":"Πλάτων","td24":"Κανονικοποιεί, διακρίνει",
+    "td31":"Και τα δύο","td32":"Leibniz","td34":"Συνθέτει & αναλύει",
+    "td41":"Βιολογία","td42":"Εγκέφαλος","td44":"Οπτικός φλοιός",
+    "ph-ct":`Τα νευρωνικά δίκτυα αντικατοπτρίζουν τη <span style="color:var(--text)">δομή της ανθρώπινης σκέψης</span>. Η ερώτηση <em>"μήπως η διαίρεση θα ήταν καλύτερη"</em> οδήγησε στους <span style="color:var(--accent);font-weight:700">Transformers</span>.`,
+    "ph-tip":`💡 Η ιδέα "divisive neuron" είναι η βάση των <strong>Attention Mechanisms</strong>. Ο Πλάτων θα το είχε αναγνωρίσει.`,
+    "footer-txt":"Perikles Nikoules — MSc AI · University of Essex · 2025",
   },
-  en: {
-    "h-sup": "PHILOSOPHY & MACHINE LEARNING",
-    "h-synth": "Synthesis", "h-anal": "Analysis",
-    "h-sub": "Additive · Divisive · Hybrid Neurons — Live Experiment",
-    "t1": "Experiment", "t2": "Mathematics", "t3": "Philosophy",
-    "ds-label": "SELECT DATASET",
-    "ds-xor": "XOR (non-linear)", "ds-circle": "Circle (radius)", "ds-linear": "Linear (simple)",
-    "btn-step": "▶ 1 EPOCH", "btn-50": "⚡ 50 EPOCHS", "btn-auto-start": "▶▶ AUTO", "btn-auto-stop": "⏹ STOP",
-    "epoch-lbl": "Epoch:",
-    "loss-lbl": "LOSS CURVE (COMPARISON)",
-    "winner-lbl": "RESULT",
-    "winner-fn": (name, loss, ds) => `<span style="font-weight:700">${name}</span> wins with loss <span style="color:#10b981;font-weight:700">${loss}</span><div style="color:#475569;font-size:10px;margin-top:4px">Dataset: <span style="color:#a78bfa">${ds.toUpperCase()}</span> — ${ds==='xor'?'Non-linear problems favour divisive/hybrid':ds==='circle'?'Radial structure favours divisive (ratios)':'Linear problem favours additive'}</div>`,
-    "m-formula-lbl": "FORMULA", "m-formula-lbl2": "FORMULA",
-    "m-example-lbl": "NUMERICAL EXAMPLE (x₁=2, x₂=3, w₁=0.5, w₂=-0.3, b=0.1)",
-    "m-example-lbl2": "NUMERICAL EXAMPLE (x₁=2, x₂=3)",
-    "m-deriv-lbl": "DERIVATIVE (backprop)", "m-deriv-lbl2": "DERIVATIVE (backprop)",
-    "m-pro": "✅ ADVANTAGE", "m-pro2": "✅ ADVANTAGE",
-    "m-con": "⚠ DISADVANTAGE", "m-con2": "⚠ DISADVANTAGE",
-    "m-add-pro": "Stable gradient, fast backprop, no explosion",
-    "m-add-con": "Linear — cannot perceive ratios or scale relationships",
-    "m-div-pro": "Auto-normalises, perceives ratios, non-linear",
-    "m-div-con": "Unstable if den→0, complex gradient, slow training",
-    "m-bp-title": "BACKPROPAGATION — Gradient Comparison",
-    "m-bp-sub": "For x₁=2, x₂=3, num=3.4, den=1.7, ε=0.5:",
-    "m-bp1": "Stable, easy", "m-bp2": "Depends on den",
-    "m-bp3": "Complex, negative", "m-bp4": "Learns balance",
-    "ph-main-lbl": "THE CORE IDEA",
-    "ph-main-text": `Ancient philosophers held that thought is a <span style="color:var(--text)">continuous mass</span> and <span style="color:#a78bfa">logos is the instrument of division</span> — language cuts the continuum into categories. In ML, this is exactly what a neuron does: <span style="color:var(--accent)">sums</span> (synthesises) or <span style="color:var(--accent2)">divides</span> (analyses) the input space.`,
-    "ph1-title": "Aristotle — Synthesis",
-    "ph1-quote": '"The whole is more than the sum of its parts"',
-    "ph-ml-lbl": "ML CORRESPONDENCE", "ph-ml-lbl2": "ML CORRESPONDENCE",
-    "ph1-text": "Each input contributes a weighted amount to the whole. Knowledge is built through accumulation — Aristotelian synthesis.",
-    "ph2-title": "Plato — Diaeresis (Division)",
-    "ph2-quote": '"Knowledge arises from the division of genus into species" — Sophist',
-    "ph2-text": "The neuron does not merely sum — it divides. It measures ratios, normalises, separates signal from noise. Platonic Diaeresis in mathematical form.",
-    "ph3-title": "Leibniz — Monad / Logos",
-    "ph3-quote": '"Reason encompasses both synthesis and analysis"',
-    "ph3-text": "The mind uses both: synthesises to understand, analyses to distinguish. Exactly the Hybrid neuron.",
-    "ph4-title": "The Brain — Divisive Normalization",
-    "ph4-quote": '"Carandini & Heeger (2012): the visual cortex uses division"',
-    "ph4-text": "Biologically, the brain normalises through division — explaining contrast sensitivity and light adaptation.",
-    "ph-table-lbl": "SUMMARY",
+  en:{
+    "h-sup":"PHILOSOPHY & MACHINE LEARNING","h-synth":"Synthesis","h-anal":"Analysis",
+    "h-sub":"Additive · Divisive · Hybrid Neurons — Live Experiment",
+    "t1":"Experiment","t2":"Mathematics","t3":"Philosophy",
+    "g1":`Choose a <strong>dataset</strong> — the shape of the data (XOR, circle, spiral, line)`,
+    "g2":`Press <strong>AUTO</strong> to start training — or +20/+100 for steps`,
+    "g3":`Watch the <strong>Decision Boundaries</strong> live — how each network sees the space`,
+    "g4":`Compare <strong>Loss</strong> (error) and <strong>Accuracy %</strong> — lower Loss = better network`,
+    "ds-label":"DATASET","ds-xor":"XOR","ds-circle":"Circle","ds-spiral":"Spiral ✨","ds-linear":"Linear",
+    "epoch-lbl":"Epoch:","loss-lbl":"LOSS CURVE — lower = better",
+    "winner-lbl":"RESULT","boundary-lbl":"DECISION BOUNDARIES — LIVE",
+    "boundary-hint":"🔵 class 1 | 🟠 class 0 | background colour = network prediction",
+    "bl-add":"ADDITIVE","bl-div":"DIVISIVE","bl-hyb":"HYBRID",
+    "btn-auto-start":"▶▶ AUTO","btn-auto-stop":"⏹ STOP",
+    "LOSS":"LOSS","ACC":"ACC%",
+    "np":["Synthesis — addition of information","Analysis — division","Synthesis + Analysis — both"],
+    "dsDesc":{
+      xor:"XOR: same-sign points (++, −−) → class 1. Non-linear — cannot be split by a straight line.",
+      circle:"Circle: points inside the circle → class 1. Requires a circular decision boundary.",
+      spiral:"Spiral: two interleaved spirals. Hardest — requires multiple non-linear cuts.",
+      linear:"Linear: upper-right points → class 1. Linearly separable — a straight line suffices."
+    },
+    "statusRunning":(e,ln,dn,hn)=>`<strong>Epoch ${e}</strong> — Additive: ${ln} | Divisive: ${dn} | Hybrid: ${hn} &nbsp;⟵ lower Loss = better`,
+    "statusIdle":"Press AUTO to start training. Each <strong>epoch</strong> = one full pass through all data.",
+    "wfn":(n,nc,l,a,ds)=>`<span style="color:${nc};font-weight:900;font-size:14px">${n}</span> wins! &nbsp; Loss: <span style="color:#10b981;font-weight:700">${l}</span> &nbsp; Accuracy: <span style="color:#00d4ff;font-weight:700">${a}%</span><div style="color:#475569;font-size:10px;margin-top:4px;line-height:1.6">${{xor:"XOR: non-linear — favours divisive/hybrid",circle:"Circle: radial structure — favours divisive (ratios)",spiral:"Spiral: complex cuts — favours divisive/hybrid",linear:"Linear: linearly separable — favours additive"}[ds]}</div>`,
+    "math-add-title":"Additive Neuron — Aristotelian Synthesis",
+    "math-add-desc":"Each input is multiplied by a weight and summed. Simple, fast, but can only create straight-line decision boundaries.",
+    "math-div-title":"Divisive Neuron — Platonic Diaeresis",
+    "math-div-desc":"Instead of summing, it divides — measures ratios. Numerator amplifies, denominator normalises. Naturally non-linear.",
+    "math-hyb-title":"Hybrid Neuron — Leibnizian Logos",
+    "math-hyb-desc":"Combines both: 50% additive + 50% divisive. Uses synthesis AND analysis.",
+    "m-el":"Numerical Example","m-el2":"Numerical Example","m-el3":"Numerical Example",
+    "m-dl":"Derivative — Backprop","m-dl2":"Derivative — Analytical Backprop","m-dl3":"Backprop — both branches",
+    "m-p1":"✅ Advantage","m-c1":"⚠ Disadvantage","m-p2":"✅ Advantage","m-c2":"⚠ Disadvantage","m-p3":"✅ Advantage","m-c3":"⚠ Disadvantage",
+    "m-ap":"Fast, stable, no gradient explosion","m-ac":"Only straight lines — cannot perceive ratios",
+    "m-dp":"Auto-normalises, perceives ratios, non-linear","m-dc":"Unstable if den→0, slower training",
+    "m-hp":"Flexible — takes the best of both","m-hc":"Double parameters, slower",
+    "m-bpt":"What is Epoch & Loss",
+    "ph-ml":"THE CORE IDEA","ph-tbl":"SUMMARY","ph-cl":"CONCLUSION",
+    "ph-mt":`Ancient philosophers held that thought is a <span style="color:var(--text)">continuous mass</span> and <span style="color:#a78bfa">logos is the instrument of division</span>. In ML: <span style="color:var(--accent)">sums</span> or <span style="color:var(--accent2)">divides</span>.`,
+    "ph1t":"Aristotle — Synthesis","ph1q":'"The whole is more than the sum of its parts"',
+    "ph-mll":"ML CORRESPONDENCE","ph-ml2":"ML CORRESPONDENCE",
+    "ph1x":"Each input contributes a weighted amount. Knowledge built through accumulation.",
+    "ph2t":"Plato — Diaeresis (Division)","ph2q":'"Knowledge arises from the division of genus into species" — Sophist',
+    "ph2x":"The neuron divides. It measures ratios, normalises, separates signal from noise.",
+    "ph3t":"Leibniz — Logos","ph3q":'"Reason encompasses both synthesis and analysis"',
+    "ph3x":"The mind uses both. Exactly the Hybrid neuron.",
+    "ph4t":"The Brain — Divisive Normalization","ph4q":'"Carandini & Heeger (2012): the visual cortex uses division"',
+    "ph4x":"Biologically, the brain normalises through division — explaining contrast sensitivity.",
     "th1":"Type","th2":"Philosophy","th3":"ML","th4":"Function",
-    "td1-1":"Synthesis","td1-2":"Aristotle","td1-4":"Builds representation",
-    "td2-1":"Analysis","td2-2":"Plato","td2-4":"Normalises, discriminates",
-    "td3-1":"Both","td3-2":"Leibniz","td3-4":"Synthesises & analyses",
-    "td4-1":"Biology","td4-2":"The Brain","td4-4":"Visual cortex",
-    "ph-conc-lbl": "CONCLUSION",
-    "ph-conc-text": `Modern neural networks mirror the <span style="color:var(--text)">structure of human thought</span> as described by the ancients. The question <em>"might division be better than addition in neural networks"</em> led to <span style="color:var(--accent);font-weight:700">Transformers</span> — the architecture powering every modern LLM.`,
-    "ph-conc-tip": `💡 The "divisive neuron" idea is not merely philosophical — it is the foundation of <strong>Attention Mechanisms</strong> that revolutionised ML. Plato would have recognised it immediately.`,
-    "footer-text": "Built as an empirical experiment to verify a philosophical hypothesis in ML",
-    "net-phil": ["Synthesis — addition of information", "Analysis — division of information", "Synthesis + Analysis — both"],
+    "td11":"Synthesis","td12":"Aristotle","td14":"Builds representation",
+    "td21":"Analysis","td22":"Plato","td24":"Normalises, discriminates",
+    "td31":"Both","td32":"Leibniz","td34":"Synthesises & analyses",
+    "td41":"Biology","td42":"The Brain","td44":"Visual cortex",
+    "ph-ct":`Modern neural networks mirror the <span style="color:var(--text)">structure of human thought</span>. The question <em>"might division be better"</em> led to <span style="color:var(--accent);font-weight:700">Transformers</span>.`,
+    "ph-tip":`💡 The "divisive neuron" idea is the foundation of <strong>Attention Mechanisms</strong>. Plato would have recognised it.`,
+    "footer-txt":"Perikles Nikoules — MSc AI · University of Essex · 2025",
   }
 };
 
-let currentLang = 'el';
-
-function setLang(lang) {
-  currentLang = lang;
-  document.getElementById('btn-el').classList.toggle('active', lang === 'el');
-  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
-  const t = T[lang];
-  for (const [id, val] of Object.entries(t)) {
-    if (typeof val === 'string') {
-      const el = document.getElementById(id);
-      if (el) el.innerHTML = val;
-    }
+let lang='el';
+function setLang(l){
+  lang=l;
+  document.getElementById('btn-el').classList.toggle('active',l==='el');
+  document.getElementById('btn-en').classList.toggle('active',l==='en');
+  const t=T[l];
+  for(const[id,v] of Object.entries(t)){
+    if(typeof v==='string'){const el=document.getElementById(id);if(el)el.innerHTML=v;}
   }
-  // Update net philosophy texts
-  nets.forEach((n, i) => { n.philosophy = t["net-phil"][i]; });
-  renderNetCards();
+  nets.forEach((n,i)=>{n.phil=t.np[i];});
+  updateDsDesc();
+  renderStrip();
   updateWinner();
 }
 
-// ============================================================
-// ML CORE
-// ============================================================
-const sigmoid = x => 1 / (1 + Math.exp(-Math.max(-50, Math.min(50, x))));
-const mse = (p, t) => p.reduce((s, v, i) => s + (v - t[i]) ** 2, 0) / p.length;
+// ── MATH CORE ──
+const sig=x=>1/(1+Math.exp(-Math.max(-50,Math.min(50,x))));
+const dsig=y=>y*(1-y);
+const mse=(p,t)=>p.reduce((s,v,i)=>s+(v-t[i])**2,0)/p.length;
+const calcAcc=(p,t)=>Math.round(p.filter((v,i)=>(v>.5?1:0)===t[i]).length/p.length*100);
 
-function genXOR(n=50) {
-  return Array.from({length:n}, () => {
-    const x1 = Math.random()*2-1, x2 = Math.random()*2-1;
-    return { x:[x1,x2], y: x1*x2>0?1:0 };
-  });
-}
-function genCircle(n=50) {
-  return Array.from({length:n}, () => {
-    const a = Math.random()*2*Math.PI;
-    const r = Math.random()<0.5 ? Math.random()*0.5 : 0.7+Math.random()*0.3;
-    return { x:[r*Math.cos(a), r*Math.sin(a)], y: r<0.6?1:0 };
-  });
-}
-function genLinear(n=50) {
-  return Array.from({length:n}, () => {
-    const x1=Math.random()*2-1, x2=Math.random()*2-1;
-    return { x:[x1,x2], y: x1+x2>0?1:0 };
-  });
-}
+// ── DATASETS ──
+const rn=()=>(Math.random()-.5)*1.8;
+function genXOR(){return Array.from({length:80},()=>{const x=rn(),y=rn();return{x:[x,y],y:x*y>0?1:0};});}
+function genCircle(){return Array.from({length:80},()=>{const a=Math.random()*6.28,r=Math.random()<.5?Math.random()*.44:.64+Math.random()*.28;return{x:[r*Math.cos(a),r*Math.sin(a)],y:r<.55?1:0};});}
+function genSpiral(){const d=[];for(let c=0;c<2;c++)for(let i=0;i<40;i++){const t=i/40*3.8+c*Math.PI,r=.08+i/40*.88;d.push({x:[r*Math.cos(t),r*Math.sin(t)],y:c});}return d;}
+function genLinear(){return Array.from({length:80},()=>{const x=rn(),y=rn();return{x:[x,y],y:x+y>0?1:0};});}
 
-class AdditiveNet {
-  constructor() {
-    this.w=[Math.random()-.5,Math.random()-.5]; this.b=0; this.losses=[];
-    this.name="Additive (Σ wᵢxᵢ)"; this.color="#00d4ff";
-    this.philosophy=T[currentLang]["net-phil"][0];
+// ── NETS with correct analytical backprop ──
+class ANet{
+  constructor(){this.w=[(Math.random()-.5)*.5,(Math.random()-.5)*.5];this.b=0;this.L=[];this.name="Additive";this.color="#00d4ff";this.phil=T[lang].np[0];}
+  p(x){return sig(x[0]*this.w[0]+x[1]*this.w[1]+this.b);}
+  train(data,lr=0.4){
+    let d0=0,d1=0,db=0;
+    for(const{x,y}of data){const o=this.p(x),d=(o-y)*dsig(o);d0+=d*x[0];d1+=d*x[1];db+=d;}
+    const n=data.length;this.w[0]-=lr*d0/n;this.w[1]-=lr*d1/n;this.b-=lr*db/n;
+    this.L.push(mse(data.map(d=>this.p(d.x)),data.map(d=>d.y)));
   }
-  predict(x){ return sigmoid(x.reduce((s,xi,i)=>s+this.w[i]*xi, this.b)); }
-  train(data, lr=0.5){
-    let dw=[0,0],db=0;
-    data.forEach(({x,y})=>{ const e=this.predict(x)-y; dw[0]+=e*x[0];dw[1]+=e*x[1];db+=e; });
-    this.w[0]-=lr*dw[0]/data.length; this.w[1]-=lr*dw[1]/data.length; this.b-=lr*db/data.length;
-    const loss=mse(data.map(d=>this.predict(d.x)),data.map(d=>d.y));
-    this.losses.push(loss); return loss;
-  }
-  formula(){ return `z=(${this.w[0].toFixed(3)})x₁+(${this.w[1].toFixed(3)})x₂+${this.b.toFixed(3)}`; }
 }
-
-class DivisiveNet {
-  constructor() {
-    this.wP=[Math.abs(Math.random()),Math.abs(Math.random())];
-    this.wN=[Math.abs(Math.random())*.5,Math.abs(Math.random())*.5];
-    this.losses=[]; this.name="Divisive (Σw⁺xᵢ/Σw⁻xᵢ)"; this.color="#ff6b35";
-    this.philosophy=T[currentLang]["net-phil"][1];
+class DNet{
+  constructor(){
+    this.wP=[.5+Math.random()*.5,.5+Math.random()*.5];
+    this.wN=[.15+Math.random()*.25,.15+Math.random()*.25];
+    this.L=[];this.name="Divisive";this.color="#ff6b35";this.phil=T[lang].np[1];
   }
-  predict(x){
-    const xp=x.map(v=>Math.max(0,v)+0.01);
-    const num=xp.reduce((s,xi,i)=>s+Math.abs(this.wP[i])*xi,0.1);
-    const den=xp.reduce((s,xi,i)=>s+Math.abs(this.wN[i])*xi,0)+0.5;
-    return sigmoid(num/den);
+  _f(x){
+    const xp=[Math.abs(x[0])+.05,Math.abs(x[1])+.05];
+    const num=xp[0]*this.wP[0]+xp[1]*this.wP[1]+.08;
+    const den=xp[0]*this.wN[0]+xp[1]*this.wN[1]+.5;
+    return{xp,num,den,out:sig(num/den)};
   }
-  train(data, lr=0.3){
-    const eps=1e-4;
-    const L0=()=>mse(data.map(d=>this.predict(d.x)),data.map(d=>d.y));
-    const l0=L0();
-    for(let i=0;i<2;i++){
-      this.wP[i]+=eps; const lP=L0(); this.wP[i]-=eps;
-      this.wP[i]=Math.max(0.001, this.wP[i]-lr*(lP-l0)/eps);
-      this.wN[i]+=eps; const lN=L0(); this.wN[i]-=eps;
-      this.wN[i]=Math.max(0.001, this.wN[i]-lr*(lN-l0)/eps);
+  p(x){return this._f(x).out;}
+  train(data,lr=0.2){
+    let dp0=0,dp1=0,dn0=0,dn1=0;
+    for(const{x,y}of data){
+      const{xp,num,den,out}=this._f(x);
+      const dL=(out-y)*dsig(out);
+      dp0+=dL*xp[0]/den; dp1+=dL*xp[1]/den;
+      dn0+=dL*(-num*xp[0]/(den*den)); dn1+=dL*(-num*xp[1]/(den*den));
     }
-    const loss=L0(); this.losses.push(loss); return loss;
+    const n=data.length;
+    this.wP[0]=Math.max(.01,this.wP[0]-lr*dp0/n); this.wP[1]=Math.max(.01,this.wP[1]-lr*dp1/n);
+    this.wN[0]=Math.max(.01,this.wN[0]-lr*dn0/n); this.wN[1]=Math.max(.01,this.wN[1]-lr*dn1/n);
+    this.L.push(mse(data.map(d=>this.p(d.x)),data.map(d=>d.y)));
   }
-  formula(){ return `z=(${this.wP[0].toFixed(2)}x₁+${this.wP[1].toFixed(2)}x₂)/(${this.wN[0].toFixed(2)}x₁+${this.wN[1].toFixed(2)}x₂+ε)`; }
 }
-
-class HybridNet {
-  constructor() {
-    this.w=[Math.random()-.5,Math.random()-.5]; this.b=0;
-    this.wP=[Math.abs(Math.random()),Math.abs(Math.random())];
-    this.wN=[Math.abs(Math.random())*.5,Math.abs(Math.random())*.5];
-    this.losses=[]; this.name="Hybrid (α·Add+(1-α)·Div)"; this.color="#10b981";
-    this.philosophy=T[currentLang]["net-phil"][2];
+class HNet{
+  constructor(){
+    this.w=[(Math.random()-.5)*.5,(Math.random()-.5)*.5];this.b=0;
+    this.wP=[.5+Math.random()*.5,.5+Math.random()*.5];
+    this.wN=[.15+Math.random()*.25,.15+Math.random()*.25];
+    this.L=[];this.name="Hybrid";this.color="#10b981";this.phil=T[lang].np[2];
   }
-  predict(x){
-    const add=x.reduce((s,xi,i)=>s+this.w[i]*xi,this.b);
-    const xp=x.map(v=>Math.max(0,v)+0.01);
-    const num=xp.reduce((s,xi,i)=>s+Math.abs(this.wP[i])*xi,0.1);
-    const den=xp.reduce((s,xi,i)=>s+Math.abs(this.wN[i])*xi,0)+0.5;
-    return sigmoid(0.5*add+0.5*num/den);
+  _f(x){
+    const zadd=x[0]*this.w[0]+x[1]*this.w[1]+this.b;
+    const xp=[Math.abs(x[0])+.05,Math.abs(x[1])+.05];
+    const num=xp[0]*this.wP[0]+xp[1]*this.wP[1]+.08;
+    const den=xp[0]*this.wN[0]+xp[1]*this.wN[1]+.5;
+    return{zadd,xp,num,den,out:sig(.5*zadd+.5*(num/den))};
   }
-  train(data, lr=0.4){
-    const eps=1e-4;
-    const L0=()=>mse(data.map(d=>this.predict(d.x)),data.map(d=>d.y));
-    const l0=L0();
-    for(let i=0;i<2;i++){
-      this.w[i]+=eps; const lw=L0(); this.w[i]-=eps;
-      this.w[i]-=lr*(lw-l0)/eps;
-      this.wP[i]+=eps; const lP=L0(); this.wP[i]-=eps;
-      this.wP[i]=Math.max(0.001, this.wP[i]-lr*(lP-l0)/eps);
-      this.wN[i]+=eps; const lN=L0(); this.wN[i]-=eps;
-      this.wN[i]=Math.max(0.001, this.wN[i]-lr*(lN-l0)/eps);
+  p(x){return this._f(x).out;}
+  train(data,lr=0.25){
+    let dw0=0,dw1=0,db=0,dp0=0,dp1=0,dn0=0,dn1=0;
+    for(const{x,y}of data){
+      const{zadd,xp,num,den,out}=this._f(x);
+      const dL=(out-y)*dsig(out);
+      dw0+=dL*.5*x[0]; dw1+=dL*.5*x[1]; db+=dL*.5;
+      dp0+=dL*.5*xp[0]/den; dp1+=dL*.5*xp[1]/den;
+      dn0+=dL*.5*(-num*xp[0]/(den*den)); dn1+=dL*.5*(-num*xp[1]/(den*den));
     }
-    this.b+=eps; const lb=L0(); this.b-=eps; this.b-=lr*(lb-l0)/eps;
-    const loss=L0(); this.losses.push(loss); return loss;
+    const n=data.length;
+    this.w[0]-=lr*dw0/n; this.w[1]-=lr*dw1/n; this.b-=lr*db/n;
+    this.wP[0]=Math.max(.01,this.wP[0]-lr*dp0/n); this.wP[1]=Math.max(.01,this.wP[1]-lr*dp1/n);
+    this.wN[0]=Math.max(.01,this.wN[0]-lr*dn0/n); this.wN[1]=Math.max(.01,this.wN[1]-lr*dn1/n);
+    this.L.push(mse(data.map(d=>this.p(d.x)),data.map(d=>d.y)));
   }
-  formula(){ return `z=0.5·Σwxᵢ+0.5·Σw⁺xᵢ/Σw⁻xᵢ`; }
 }
 
-// ============================================================
-// STATE
-// ============================================================
-let dataset = 'xor';
-let data = genXOR();
-let nets = [new AdditiveNet(), new DivisiveNet(), new HybridNet()];
-let epoch = 0;
-let autoTimer = null;
+// ── STATE ──
+let ds='xor',data=genXOR(),nets=[new ANet(),new DNet(),new HNet()],epoch=0,timer=null;
 
-function setDataset(ds) {
-  dataset = ds;
-  data = ds==='xor'?genXOR():ds==='circle'?genCircle():genLinear();
-  nets = [new AdditiveNet(), new DivisiveNet(), new HybridNet()];
-  if(currentLang) { nets.forEach((n,i)=>n.philosophy=T[currentLang]["net-phil"][i]); }
-  epoch = 0;
-  if(autoTimer){ clearInterval(autoTimer); autoTimer=null; updateAutoBtn(); }
-  document.getElementById('epoch-val').textContent='0';
-  document.getElementById('loss-panel').style.display='none';
-  document.getElementById('winner-box').style.display='none';
-  ['xor','circle','linear'].forEach(d => {
-    document.getElementById('ds-'+d).classList.toggle('active', d===ds);
-  });
-  renderNetCards();
+function updateDsDesc(){
+  const el=document.getElementById('ds-desc');
+  if(el) el.textContent=T[lang].dsDesc[ds];
 }
 
-// ============================================================
-// CANVAS BOUNDARY
-// ============================================================
-function drawBoundary(canvas, net) {
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width, h = canvas.height;
-  const res = 28;
-  const cw = w/res, ch = h/res;
-  ctx.clearRect(0,0,w,h);
-  for(let r=0;r<res;r++) for(let c=0;c<res;c++){
-    const x1=(c/res)*2-1, x2=(r/res)*2-1;
-    const p = net.predict([x1,x2]);
-    const blue=Math.round(p*220), orange=Math.round((1-p)*220);
-    ctx.fillStyle=`rgba(${orange},${Math.round(p*70)},${blue},0.75)`;
-    ctx.fillRect(c*cw,r*ch,cw+1,ch+1);
+function setDS(d){
+  ds=d;
+  data=d==='xor'?genXOR():d==='circle'?genCircle():d==='spiral'?genSpiral():genLinear();
+  ['xor','circle','spiral','linear'].forEach(k=>document.getElementById('ds-'+k).classList.toggle('active',k===d));
+  updateDsDesc();
+  resetAll();
+}
+
+// ── DRAW BOUNDARY ──
+const RES=20;
+function drawBound(idx){
+  const cv=document.getElementById('cv-'+idx);if(!cv)return;
+  const W=cv.offsetWidth||210,H=cv.height;
+  cv.width=W;
+  const ctx=cv.getContext('2d');
+  const cw=W/RES,ch=H/RES,net=nets[idx];
+  for(let r=0;r<RES;r++)for(let c=0;c<RES;c++){
+    const x1=(c/RES)*2-1,x2=(r/RES)*2-1,pv=net.p([x1,x2]);
+    ctx.fillStyle=`rgba(${Math.round((1-pv)*170)},${Math.round(pv*55)},${Math.round(pv*195)},0.68)`;
+    ctx.fillRect(Math.floor(c*cw),Math.floor(r*ch),Math.ceil(cw)+1,Math.ceil(ch)+1);
   }
-  // Draw points
   data.forEach(({x,y})=>{
-    const cx=((x[0]+1)/2)*w, cy=((x[1]+1)/2)*h;
-    ctx.beginPath(); ctx.arc(cx,cy,4,0,2*Math.PI);
-    ctx.fillStyle = y===1?'#00d4ff':'#ff6b35';
-    ctx.strokeStyle='white'; ctx.lineWidth=1.2;
-    ctx.fill(); ctx.stroke();
+    const cx=((x[0]+1)/2)*W,cy=((x[1]+1)/2)*H;
+    ctx.beginPath();ctx.arc(cx,cy,3.5,0,6.28);
+    ctx.fillStyle=y===1?'#00d4ff':'#ff6b35';
+    ctx.strokeStyle='rgba(255,255,255,0.9)';ctx.lineWidth=1.3;
+    ctx.fill();ctx.stroke();
   });
 }
 
-// ============================================================
-// RENDER NET CARDS
-// ============================================================
-function renderNetCards() {
-  const cont = document.getElementById('net-cards');
-  cont.innerHTML='';
-  nets.forEach((net, idx) => {
-    const loss = net.losses.length ? net.losses[net.losses.length-1] : null;
-    const lossColor = loss===null?'#475569':loss<0.15?'#10b981':loss<0.25?'#f59e0b':'#ef4444';
-    const barW = loss===null?0:Math.max(0,(1-loss*4)*100);
-
-    const card = document.createElement('div');
-    card.className='net-card';
-    card.style.borderColor = net.color+'44';
-    card.innerHTML=`
-      <div class="net-card-inner">
-        <canvas width="130" height="130" id="canvas-${idx}"></canvas>
-        <div class="net-info">
-          <div class="net-name">
-            <div class="net-dot" style="background:${net.color}"></div>
-            <span style="color:${net.color}">${net.name}</span>
-          </div>
-          <div class="net-phil">${net.philosophy}</div>
-          <div class="net-formula">${net.formula()}</div>
-          <div class="net-loss-row">
-            <span style="color:#475569;font-size:10px">Loss: </span>
-            <span style="color:${lossColor};font-size:15px;font-weight:900">${loss!==null?loss.toFixed(4):'—'}</span>
-            <div class="loss-bar-wrap">
-              <div class="loss-bar" style="width:${barW}%;background:${net.color}"></div>
-            </div>
-          </div>
-        </div>
-      </div>`;
-    cont.appendChild(card);
-    drawBoundary(document.getElementById('canvas-'+idx), net);
-  });
+// ── RENDER STRIP ──
+function renderStrip(){
+  const t=T[lang];
+  document.getElementById('net-strip').innerHTML=nets.map((net,i)=>{
+    const lv=net.L.length?net.L[net.L.length-1]:null;
+    const preds=data.map(d=>net.p(d.x)),tgts=data.map(d=>d.y);
+    const av=lv!==null?calcAcc(preds,tgts):null;
+    const lc=lv===null?'var(--muted)':lv<.15?'#10b981':lv<.22?'#f59e0b':'#ef4444';
+    const ac=av===null?'var(--muted)':av>=80?'#10b981':av>=65?'#f59e0b':'#ef4444';
+    // check if winner
+    const losses=nets.map(n=>n.L.length?n.L[n.L.length-1]:99);
+    const isWinner=epoch>=8&&lv!==null&&lv===Math.min(...losses);
+    return `<div class="nc${isWinner?' winner':''}" style="border-color:${net.color}44;${isWinner?`--win-color:${net.color}`:''}">
+      <div class="nc-name"><div class="nc-dot" style="background:${net.color}"></div><span style="color:${net.color}">${net.name}${isWinner?' 🏆':''}</span></div>
+      <div class="nc-phil">${net.phil}</div>
+      <div class="nc-metrics">
+        <div class="nc-metric"><div class="nc-mlbl">${t.LOSS}</div><div class="nc-mval" style="color:${lc}">${lv!==null?lv.toFixed(3):'—'}</div></div>
+        <div class="nc-metric"><div class="nc-mlbl">${t.ACC}</div><div class="nc-mval" style="color:${ac}">${av!==null?av+'%':'—'}</div></div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-// ============================================================
-// DRAW LOSS CURVES
-// ============================================================
-function drawLoss() {
-  const canvas = document.getElementById('loss-chart');
-  const ctx = canvas.getContext('2d');
-  const W=canvas.width, H=canvas.height;
+// ── DRAW LOSS CHART ──
+function drawLoss(){
+  const cv=document.getElementById('loss-chart');if(!cv)return;
+  cv.width=cv.offsetWidth||640;
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
   ctx.clearRect(0,0,W,H);
-  const allLosses = nets.flatMap(n=>n.losses);
-  if(!allLosses.length) return;
-  const maxL=Math.max(...allLosses,0.5), minL=Math.min(...allLosses,0);
-  const toX=(i,len)=>(i/Math.max(len-1,1))*W;
-  const toY=v=>H-((v-minL)/(maxL-minL+1e-9))*H*0.85-5;
-  ctx.strokeStyle='#1e2d45'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(0,H-5); ctx.lineTo(W,H-5); ctx.stroke();
-  nets.forEach(net=>{
-    if(net.losses.length<2) return;
-    ctx.strokeStyle=net.color; ctx.lineWidth=2; ctx.beginPath();
-    net.losses.forEach((l,i)=>i===0?ctx.moveTo(toX(i,net.losses.length),toY(l)):ctx.lineTo(toX(i,net.losses.length),toY(l)));
-    ctx.stroke();
-    const last=net.losses.length-1;
-    ctx.fillStyle=net.color; ctx.beginPath();
-    ctx.arc(toX(last,net.losses.length),toY(net.losses[last]),4,0,2*Math.PI); ctx.fill();
+  const all=nets.flatMap(n=>n.L);
+  if(all.length<2)return;
+  const maxL=Math.max(...all,.3);
+  const pad=36,rw=W-pad-10,rh=H-16;
+  const toX=(i,len)=>pad+i/Math.max(len-1,1)*rw;
+  const toY=v=>4+(1-v/maxL)*rh;
+  // grid
+  [.05,.1,.15,.2,.25,.3].forEach(v=>{
+    if(v>maxL*1.05)return;
+    const y=toY(v);
+    ctx.strokeStyle='#1e2d4555';ctx.lineWidth=.5;
+    ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-4,y);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#47556988';ctx.font='9px IBM Plex Mono,monospace';
+    ctx.fillText(v.toFixed(2),2,y+3);
   });
-  // Legend
-  const leg=document.getElementById('loss-legend');
-  leg.innerHTML=nets.map(n=>`<div style="display:flex;align-items:center;gap:5px"><div style="width:18px;height:2px;background:${n.color}"></div><span style="font-size:9px;color:${n.color}">${n.name.split('(')[0].trim()}</span></div>`).join('');
+  // lines
+  nets.forEach(net=>{
+    if(net.L.length<2)return;
+    ctx.strokeStyle=net.color;ctx.lineWidth=2.2;ctx.lineJoin='round';ctx.setLineDash([]);
+    ctx.beginPath();
+    net.L.forEach((l,i)=>i===0?ctx.moveTo(toX(i,net.L.length),toY(l)):ctx.lineTo(toX(i,net.L.length),toY(l)));
+    ctx.stroke();
+    const li=net.L.length-1,lx=toX(li,net.L.length),ly=toY(net.L[li]);
+    ctx.fillStyle=net.color;ctx.beginPath();ctx.arc(lx,ly,4,0,6.28);ctx.fill();
+    ctx.font='bold 9px IBM Plex Mono,monospace';ctx.fillStyle=net.color;
+    ctx.fillText(net.L[li].toFixed(3),Math.min(lx+6,W-42),Math.max(ly-3,10));
+  });
+  document.getElementById('loss-legend').innerHTML=nets.map(n=>`<div class="ll-item"><div style="width:16px;height:2px;background:${n.color}"></div><span style="color:${n.color}">${n.name}</span></div>`).join('');
 }
 
-// ============================================================
-// UPDATE WINNER
-// ============================================================
-function updateWinner() {
+// ── STATUS ──
+function updateStatus(){
+  const t=T[lang];
+  const sb=document.getElementById('status-bar');if(!sb)return;
+  if(epoch===0){sb.innerHTML=t.statusIdle;return;}
+  const fmt=v=>v!==null?v.toFixed(3):'—';
+  const ln=fmt(nets[0].L.length?nets[0].L[nets[0].L.length-1]:null);
+  const dn=fmt(nets[1].L.length?nets[1].L[nets[1].L.length-1]:null);
+  const hn=fmt(nets[2].L.length?nets[2].L[nets[2].L.length-1]:null);
+  sb.innerHTML=t.statusRunning(epoch,ln,dn,hn);
+}
+
+// ── WINNER ──
+function updateWinner(){
   const box=document.getElementById('winner-box');
-  const txt=document.getElementById('winner-text');
-  if(epoch<20){ box.style.display='none'; return; }
-  const losses=nets.map(n=>n.losses.length?n.losses[n.losses.length-1]:99);
-  const bestIdx=losses.indexOf(Math.min(...losses));
-  const best=nets[bestIdx];
+  if(epoch<8){box.style.display='none';return;}
+  const ls=nets.map(n=>n.L.length?n.L[n.L.length-1]:99);
+  const bi=ls.indexOf(Math.min(...ls));
+  const b=nets[bi];
+  const ba=calcAcc(data.map(d=>b.p(d.x)),data.map(d=>d.y));
   box.style.display='block';
-  const t=T[currentLang];
-  txt.innerHTML=t['winner-fn'](`<span style="color:${best.color}">${best.name}</span>`,losses[bestIdx].toFixed(4),dataset);
+  document.getElementById('winner-text').innerHTML=T[lang].wfn(b.name,b.color,ls[bi].toFixed(4),ba,ds);
 }
 
-// ============================================================
-// CONTROLS
-// ============================================================
-function doStep() {
-  nets.forEach(n=>n.train(data));
-  epoch++;
+// ── TRAIN ──
+function trainBatch(n){for(let i=0;i<n;i++){nets.forEach(net=>net.train(data));epoch++;}}
+
+function render(skipBound){
   document.getElementById('epoch-val').textContent=epoch;
-  renderNetCards();
-  if(epoch>0){ document.getElementById('loss-panel').style.display='block'; drawLoss(); }
+  renderStrip();
+  updateStatus();
+  document.getElementById('loss-wrap').style.display='block';
+  drawLoss();
+  if(!skipBound) nets.forEach((_,i)=>drawBound(i));
   updateWinner();
 }
 
-function do50(){ for(let i=0;i<50;i++) doStep(); }
+function doStep(){trainBatch(1);render(false);}
+function doN(n){trainBatch(n);render(false);}
 
 function toggleAuto(){
-  if(autoTimer){ clearInterval(autoTimer); autoTimer=null; }
-  else { autoTimer=setInterval(doStep,80); }
-  updateAutoBtn();
-}
-function updateAutoBtn(){
-  const btn=document.getElementById('btn-auto');
-  const t=T[currentLang];
-  if(autoTimer){
-    btn.textContent=t['btn-auto-stop'];
-    btn.style.borderColor='#ef4444'; btn.style.background='#ef444411'; btn.style.color='#ef4444';
-  } else {
+  const btn=document.getElementById('btn-auto'),t=T[lang];
+  if(timer){
+    clearInterval(timer);timer=null;
     btn.textContent=t['btn-auto-start'];
-    btn.style.borderColor='var(--green)'; btn.style.background='#10b98111'; btn.style.color='var(--green)';
+    btn.style.cssText='border:1px solid var(--green);background:#10b98111;color:var(--green)';
+    render(false);
+  }else{
+    let tick=0;
+    timer=setInterval(()=>{
+      trainBatch(2);tick++;
+      render(tick%3!==0);
+    },140);
+    btn.textContent=t['btn-auto-stop'];
+    btn.style.cssText='border:1px solid var(--red);background:#ef444411;color:var(--red)';
   }
 }
 
-// ============================================================
-// TABS
-// ============================================================
-function setTab(id) {
+function resetAll(){
+  if(timer){clearInterval(timer);timer=null;
+    const btn=document.getElementById('btn-auto'),t=T[lang];
+    btn.textContent=t['btn-auto-start'];
+    btn.style.cssText='border:1px solid var(--green);background:#10b98111;color:var(--green)';}
+  nets=[new ANet(),new DNet(),new HNet()];
+  nets.forEach((n,i)=>{n.phil=T[lang].np[i];});
+  epoch=0;
+  document.getElementById('epoch-val').textContent='0';
+  document.getElementById('loss-wrap').style.display='none';
+  document.getElementById('winner-box').style.display='none';
+  updateStatus();
+  renderStrip();
+  nets.forEach((_,i)=>drawBound(i));
+}
+
+function setTab(id){
   ['experiment','math','philosophy'].forEach(t=>{
     document.getElementById('content-'+t).classList.toggle('active',t===id);
-    document.getElementById('tab-'+t.replace('experiment','exp').replace('math','math').replace('philosophy','phil')).classList.toggle('active',t===id);
+    document.getElementById('tab-'+t.replace('experiment','exp').replace('philosophy','phil')).classList.toggle('active',t===id);
   });
 }
 
-// ============================================================
-// INIT
-// ============================================================
-renderNetCards();
+// ── INIT ──
+updateDsDesc();
+renderStrip();
+nets.forEach((_,i)=>drawBound(i));
+window.addEventListener('resize',()=>{nets.forEach((_,i)=>drawBound(i));drawLoss();});
 </script>
 </body>
 </html>
